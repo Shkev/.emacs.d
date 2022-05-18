@@ -238,6 +238,9 @@
   ;; show diff in same window
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
+;; make magit prompt for ssh password
+(use-package ssh-agency)
+(setenv "SSH_ASKPASS" "git-gui--askpass")
 
 ;; Games
 
