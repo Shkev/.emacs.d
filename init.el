@@ -7,19 +7,33 @@
 
 ;; Don't show the splash startup screen
 (setq inhibit-startup-message t)
+
+;; font size/style
+(set-face-attribute 'default nil
+		    :font "Consolas"
+		    :height 130)
+
 ;; other visual stuff
 (blink-cursor-mode -1)
 (global-hl-line-mode 1)
+
 ;; allows using the mouse in terminal
 (xterm-mouse-mode 1)
+
 ;; showing line numbers
-; source: https://dougie.io/emacs/indent-selection/
-(when (version<= "26.0.50" emacs-version)
-  (global-display-line-numbers-mode))
+(column-number-mode)
+(global-display-line-numbers-mode)
+;; disable line numbers for some modes
+(dolist (mode '(org-mode-hook
+		term-mode-hook
+		eshell-mode-hook))
+  (add-hook mode (lambda () (display-line-numbers-mode -1))))
 
 ;; Keyboard-centric user interface
 (tool-bar-mode -1)
+(tooltip-mode -1)
 (menu-bar-mode -1)
+(set-fringe-mode 10)
 ; Don't display pop-up UI prompts
 (setq use-dialog-box nil)
 
@@ -39,7 +53,9 @@
 
 ;; Define and initialize package repositories (MELPA)
 (require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+			  ("org" . "https://orgmode.org/elpa/")
+			  ("elpa" . "https://elpa.gnu.org/packages/")))
 (package-initialize)
 
 ;; use use-package to simplify loading packages
@@ -47,18 +63,49 @@
   (package-refresh-contents)
   (package-install 'use-package))
 (require 'use-package)
-(setq use-package-always-ensure 't)
+(setq use-package-always-ensure t)
 
 ;; load packages
 
 (use-package which-key
+  :init (which-key-mode)
+  :diminish which-key-mode
   :config
-  (which-key-mode)
   (setq which-key-idle-delay 0.5
 	which-key-idle-secondary-delay 0.5)
   (which-key-setup-side-window-bottom))
 
-;; Auto completion of long words
+(use-package ivy
+  :bind (("C-s" . swiper)
+	 :map ivy-minibuffer-map
+	 ("TAB" . ivy-alt-done)
+	 ("C-l" . ivy-alt-done)
+	 ("C-n" . ivy-next-line)
+	 ("C-p" . ivy-previous-line)
+	 :map ivy-switch-buffer-map
+	 ("C-p" . ivy-previous-line)
+	 ("C-l" . ivy-done)
+	 ("C-d" . ivy-switch-buffer-kill)
+	 :map ivy-reverse-i-search-map
+	 ("C-p" . ivy-previous-line)
+	 ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode 1))
+
+(use-package counsel
+  :bind (("M-x" . counsel-M-x)
+	 ("C-x b" . counsel-ibuffer)
+	 :map minibuffer-local-map
+	 ("C-r" . 'counsel-minibuffer-history))
+  :config
+  (setq ivy-initial-inputs-alist nil))
+
+;; give description of commands in counsel-M-x
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1))
+
+;; Auto completion of words
 (use-package company
   :config
   (setq company-idle-delay 0
@@ -112,6 +159,47 @@
 (smartparens-global-mode t)
 
 (use-package no-littering)
+
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom ((doom-modeline-height 15)))
+
+(use-package doom-themes
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-material t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+;; better help pages
+(use-package helpful
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
+
+;; (use-package magit
+;;   :commands (magit-status magit-get-current-branch)
+;;   :custom
+;;   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+;; Games
+
+
 
 ;;; setting keybinds to indent blocks of text
 (global-set-key (kbd "C->") 'indent-rigidly-right-to-tab-stop)
