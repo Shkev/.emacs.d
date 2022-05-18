@@ -20,6 +20,9 @@
 		    :font "Consolas"
 		    :height 130)
 
+;; make ESC quit prompts
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
 ;; other visual stuff
 (blink-cursor-mode -1)
 (global-hl-line-mode 1)
@@ -46,6 +49,7 @@
 
 ;; show recent files (M-x recentf-open-files)
 (recentf-mode 1)
+
 ;; remember and restore last cursor location of opened files
 (save-place-mode 1)
 
@@ -109,11 +113,15 @@
 
 ;; give description of commands in counsel-M-x
 (use-package ivy-rich
+  :after ivy
   :init
   (ivy-rich-mode 1))
 
+(use-package popup)
+
 ;; Auto completion of words
 (use-package company
+  :after popup
   :config
   (setq company-idle-delay 0
 	company-minimum-prefix-length 4
@@ -125,6 +133,7 @@
 
 ;; Tabs
 (use-package centaur-tabs
+  :after evil
   :init
   (setq centaur-tabs-enable-key-bindings t)
   :demand
@@ -139,7 +148,7 @@
 	  x-underline-at-descent-line t
 	  centaur-tabs-modified-marker "●")
   (centaur-tabs-headline-match)
-  (centaur-tabs-change-fonts "Calibri" 170)
+  (centaur-tabs-change-fonts "Calibri" 150)
   (setq uniquify-separator "/")
   (setq uniquify-buffer-name-style 'forward)
   :hook
@@ -153,9 +162,10 @@
    ("C-<next>" . centaur-tabs-forward)
    ("C-c t s" . centaur-tabs-counsel-switch-group)
    ("C-c t p" . centaur-tabs-group-by-projectile-project)
-   ("C-c t g" . centaur-tabs-group-buffer-groups))
-
-(use-package popup)
+   ("C-c t g" . centaur-tabs-group-buffer-groups)
+   (:map evil-normal-state-map
+	  ("g t" . centaur-tabs-forward)
+	  ("g T" . centaur-tabs-backward)))
 
 ;; auto parenthesis matching
 (use-package smartparens
@@ -199,10 +209,35 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
-;; (use-package magit
-;;   :commands (magit-status magit-get-current-branch)
-;;   :custom
-;;   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+;; evil vim key bindings and vim modes
+(use-package evil
+  :init
+  (setq evil-want-integration t
+	evil-want-keybinding nil
+	evil-want-C-u-scroll t
+	evil-want-C-i-jump nil)
+  :config
+  (evil-mode 1)
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+  ;; Use visual line motions even outside of visual-line-mode buffers
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'dashboard-mode 'normal))
+
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
+
+(use-package magit
+  :commands (magit-status magit-get-current-branch)
+  :custom
+  ;; show diff in same window
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
 
 ;; Games
 
@@ -211,12 +246,6 @@
 ;;; setting keybinds to indent blocks of text
 (global-set-key (kbd "C->") 'indent-rigidly-right-to-tab-stop)
 (global-set-key (kbd "C-<") 'indent-rigidly-left-to-tab-stop)
-
-;; adding direectory with all emacs packages and the subdirectories inside it
-;; requiring the packages so they are included in emacs
-;; (add-to-list 'load-path "~/.emacs.d/elpa/")
-;; (let ((default-directory  "~/.emacs.d/elpa"))
-;;   (normal-top-level-add-subdirs-to-load-path))
 
 
 ;;; customized C indent formatting
