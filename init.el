@@ -19,9 +19,15 @@
 (set-face-attribute 'default nil
 		    :font "Consolas"
 		    :height 130)
-
-;; make ESC quit prompts
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+;; set fixed pitch face font
+(set-face-attribute 'fixed-pitch nil
+		    :font "Consolas"
+		    :height 130)
+;; set the variable pitch face font
+(set-face-attribute 'variable-pitch nil
+		    :font "Calibri"
+		    :height 130
+		    :weight 'regular)
 
 ;; other visual stuff
 (blink-cursor-mode -1)
@@ -113,7 +119,6 @@
 
 ;; give description of commands in counsel-M-x
 (use-package ivy-rich
-  :after ivy
   :init
   (ivy-rich-mode 1))
 
@@ -209,21 +214,24 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
+;; use emacs keybinding when editing files (insert mode)
+(setq evil-disable-insert-state-bindings t)
 ;; evil vim key bindings and vim modes
 (use-package evil
   :init
-  (setq evil-want-integration t
-	evil-want-keybinding nil
-	evil-want-C-u-scroll t
-	evil-want-C-i-jump nil)
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-i-jump nil)
   :config
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+
   ;; Use visual line motions even outside of visual-line-mode buffers
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
-  
+
   (evil-set-initial-state 'messages-buffer-mode 'normal)
   (evil-set-initial-state 'dashboard-mode 'normal))
 
@@ -242,14 +250,110 @@
 (use-package ssh-agency)
 (setenv "SSH_ASKPASS" "git-gui--askpass")
 
+(use-package org
+  :config
+  (setq org-ellipsis " ▾"))
+
+;; make headings in orgmode look nicer
+(use-package org-bullets
+  :after org
+  :hook (org-mode . org-bullets-mode))
+
 ;; Games
 
 
+;;; Org Mode Config (and related packages)
 
-;;; setting keybinds to indent blocks of text
-(global-set-key (kbd "C->") 'indent-rigidly-right-to-tab-stop)
-(global-set-key (kbd "C-<") 'indent-rigidly-left-to-tab-stop)
+(defun ska/org-font-setup ()
+  ;; Replace list hyphen with dot
+  (font-lock-add-keywords 'org-mode
+                          '(("^ *\\([-]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
 
+(defun ska/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode -1)
+  (visual-line-mode 1))
+
+;; scale font size of headers
+(dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+  (set-face-attribute (car face) nil
+		      :font "Calibri"
+		      :weight 'regular
+		      :height (cdr face)))
+
+(use-package org
+  :hook (org-mode . ska/org-mode-setup)
+  :config
+  (setq org-ellipsis " ▾")
+  (ska/org-font-setup))
+
+;; make headings in orgmode look nicer
+(use-package org-bullets
+  :after org
+  :hook (org-mode . org-bullets-mode))
+
+(defun ska/org-mode-visual-fill ()
+  ;; pads both sides of text buffer (looks more like a word processor)
+  (setq visual-fill-column-width 100
+	visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+;; add padding to sides of buffer
+(use-package visual-fill-column
+  :hook (org-mode . ska/org-mode-visual-fill))
+
+(setq org-directory (concat (getenv "HOME") "OneDrive - University of Illinois - Urbana/OrgRoamNotes"))
+
+(use-package org-roam
+  :after org
+  :ensure t
+  :init
+  ; suppress v2 upgrade warning
+  (setq org-roam-v2-ack t)
+  :custom
+  (org-roam-directory (file-truename org-directory))
+  (org-roam-completion-everywhere t)
+  :bind (("C-c n f" . org-roam-node-find)
+	 ("C-c n r" . org-mode-node-random)
+	 ("C-c n l" . org-roam-buffer-toggle)
+	 ("C-c n i" . org-roam-node-insertf)
+	 ; promote heading in file to node
+	 ("C-c n o" . org-id-get-create)
+	 ; create alias for node
+	 ("C-c n a" . org-roam-alias-add)
+	 ; add tag to current node
+	 ("C-c n t" . org-roam-tag-add)
+	 ; see custom function below
+	 ("C-c n I" . org-roam-node-insert-immediate)
+	 (:map org-mode-map
+	       ("C-M-i" . completion-at-point)))
+  :config
+  (org-roam-setup))
+
+;; allows creating new node on page without opening it (stay on same file after inserting link to new file)
+(defun org-roam-node-insert-immediate (arg &rest args)
+  (interactive "P")
+  (let ((args (cons arg args))
+	(org-roam-capture-templates (list (append (car org-roam-capture-templates)
+						  '(:immediate-finish t)))))
+    (apply #'org-roam-node-insert args)))
+
+(use-package deft
+  :config
+  (setq deft-directory org-directory
+	deft-recursive t
+	deft-strip-summary-regexp ":PROPERTIES:\n\\(.+\n\\)+:END:\n"
+	deft-use-filename-as-title t)
+  :bind
+  ("C-c n d" . deft))
 
 ;;; customized C indent formatting
 
