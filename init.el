@@ -310,7 +310,7 @@
 (use-package visual-fill-column
   :hook (org-mode . ska/org-mode-visual-fill))
 
-(setq org-directory (concat (getenv "HOME") "OneDrive - University of Illinois - Urbana/OrgRoamNotes"))
+(setq org-directory (concat (getenv "HOME") "/OneDrive - University of Illinois - Urbana/OrgRoamNotes"))
 
 (use-package org-roam
   :after org
