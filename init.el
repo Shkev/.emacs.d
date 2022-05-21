@@ -254,6 +254,9 @@
 (use-package websocket)
 (use-package simple-httpd)
 
+;; syntax highlight org-mode to html exports
+(use-package htmlize)
+
 ;; Games
 
 
@@ -335,6 +338,9 @@
   :custom
   (org-roam-directory (file-truename org-directory))
   (org-roam-completion-everywhere t)
+  :config
+  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+  (org-roam-db-autosync-mode)
   :bind (("C-c n f" . org-roam-node-find)
 	 ("C-c n r" . org-mode-node-random)
 	 (:map org-mode-map
@@ -347,12 +353,7 @@
 	       ; promote heading in file to node
 	       ("C-c n o" . org-id-get-create)
 	       ("C-c n I" . org-roam-node-insert-immediate)
-	       ("C-M-i" . completion-at-point)))
-  :config
-  (org-roam-setup)
-  (setq org-roam-node-display-template
-        (concat "${title:*} "
-                (propertize "${tags:10}" 'face 'org-tag))))
+	       ("C-M-i" . completion-at-point))))
 
 (use-package deft
   :config
