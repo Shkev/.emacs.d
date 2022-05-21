@@ -4,7 +4,7 @@
 (set-default-coding-systems 'utf-8)
 (set-terminal-coding-system 'utf-8)
 (set-keyboard-coding-system 'utf-8)
-(setq default-buffer-file-coding-system 'utf-8)                      
+(setq default-buffer-file-coding-system 'utf-8)              
 (setq x-select-request-type '(UTF8_STRING COMPOUND_TEXT TEXT STRING))
 
 ;; move Emacs generated settings to separate file
@@ -65,6 +65,19 @@
 
 ;; auto update buffers when files updated on drive
 (global-auto-revert-mode 1)
+
+(defun ska/delete-file-and-buffer ()
+  "Deletes file open in current buffer and kills window
+if the current buffer contains a file"
+  (interactive)
+  (let ((filename (buffer-file-name)))
+    (if filename ; if curr buff contains a file
+	(progn (if (vc-backend filename) ; if version control contains the file
+		   (vc-delete filename)
+		 (delete-file filename))
+	       (message "Deleted file %s" filename)
+	       (kill-buffer))
+      (message "Current buffer does not contain a file"))))
 
 ;;; packages
 
