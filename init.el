@@ -337,17 +337,16 @@
   (org-roam-completion-everywhere t)
   :bind (("C-c n f" . org-roam-node-find)
 	 ("C-c n r" . org-mode-node-random)
-	 ("C-c n l" . org-roam-buffer-toggle)
-	 ("C-c n i" . org-roam-node-insertf)
-	 ; promote heading in file to node
-	 ("C-c n o" . org-id-get-create)
-	 ; create alias for node
-	 ("C-c n a" . org-roam-alias-add)
-	 ; add tag to current node
-	 ("C-c n t" . org-roam-tag-add)
-	 ; see custom function below
-	 ("C-c n I" . org-roam-node-insert-immediate)
 	 (:map org-mode-map
+	       ("C-c n i" . org-roam-node-insert)
+	       ("C-c n l" . org-roam-buffer-toggle)
+	       ; add tag to current node
+	       ("C-c n t" . org-roam-tag-add)
+	       ; create alias for node
+	       ("C-c n a" . org-roam-alias-add)
+	       ; promote heading in file to node
+	       ("C-c n o" . org-id-get-create)
+	       ("C-c n I" . org-roam-node-insert-immediate)
 	       ("C-M-i" . completion-at-point)))
   :config
   (org-roam-setup)
