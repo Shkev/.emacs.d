@@ -250,14 +250,9 @@
 (use-package ssh-agency)
 (setenv "SSH_ASKPASS" "git-gui--askpass")
 
-(use-package org
-  :config
-  (setq org-ellipsis " ▾"))
-
-;; make headings in orgmode look nicer
-(use-package org-bullets
-  :after org
-  :hook (org-mode . org-bullets-mode))
+;; dependencies for org-roam-ui
+(use-package websocket)
+(use-package simple-httpd)
 
 ;; Games
 
@@ -271,12 +266,12 @@
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•")))))))
 
 (defun ska/org-mode-setup ()
+  "Set up org mode"
   (org-indent-mode)
   (variable-pitch-mode -1)
-  (visual-line-mode 1))
-
-;; scale font size of headers
-(dolist (face '((org-level-1 . 1.2)
+  (visual-line-mode 1)
+  ;; scale font size of headers
+  (dolist (face '((org-level-1 . 1.2)
                   (org-level-2 . 1.1)
                   (org-level-3 . 1.05)
                   (org-level-4 . 1.0)
@@ -284,16 +279,27 @@
                   (org-level-6 . 1.1)
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
-  (set-face-attribute (car face) nil
-		      :font "Calibri"
-		      :weight 'regular
-		      :height (cdr face)))
+    (set-face-attribute (car face) nil
+			:font "Calibri"
+			:weight 'regular
+			:height (cdr face))))
+
+(defun ska/org-mode-toggle-hide-emphasis-markers ()
+  "Toggle org mode emphasis markers on and off"
+  (interactive)
+  (progn (if (null org-hide-emphasis-markers)
+	     (setq org-hide-emphasis-markers t)
+	   (setq org-hide-emphasis-markers nil))
+	 (org-mode)))
 
 (use-package org
   :hook (org-mode . ska/org-mode-setup)
   :config
   (setq org-ellipsis " ▾")
-  (ska/org-font-setup))
+  (ska/org-font-setup)
+  :bind (
+	 ;; toggle org mode emphasis markers on and off
+	 ("C-c s e" . ska/org-mode-toggle-hide-emphasis-markers)))
 
 ;; make headings in orgmode look nicer
 (use-package org-bullets
@@ -311,6 +317,14 @@
   :hook (org-mode . ska/org-mode-visual-fill))
 
 (setq org-directory (concat (getenv "HOME") "/OneDrive - University of Illinois - Urbana/OrgRoamNotes"))
+
+;; allows creating new node on page without opening it (stay on same file after inserting link to new file)
+(defun org-roam-node-insert-immediate (arg &rest args)
+  (interactive "P")
+  (let ((args (cons arg args))
+	(org-roam-capture-templates (list (append (car org-roam-capture-templates)
+      '(:immediate-finish t)))))
+    (apply #'org-roam-node-insert args)))
 
 (use-package org-roam
   :after org
@@ -336,24 +350,24 @@
 	 (:map org-mode-map
 	       ("C-M-i" . completion-at-point)))
   :config
-  (org-roam-setup))
-
-;; allows creating new node on page without opening it (stay on same file after inserting link to new file)
-(defun org-roam-node-insert-immediate (arg &rest args)
-  (interactive "P")
-  (let ((args (cons arg args))
-	(org-roam-capture-templates (list (append (car org-roam-capture-templates)
-						  '(:immediate-finish t)))))
-    (apply #'org-roam-node-insert args)))
+  (org-roam-setup)
+  (setq org-roam-node-display-template
+        (concat "${title:*} "
+                (propertize "${tags:10}" 'face 'org-tag))))
 
 (use-package deft
   :config
   (setq deft-directory org-directory
 	deft-recursive t
 	deft-strip-summary-regexp ":PROPERTIES:\n\\(.+\n\\)+:END:\n"
-	deft-use-filename-as-title t)
+	deft-use-filename-as-title nil)
   :bind
   ("C-c n d" . deft))
+
+(use-package org-roam-ui
+  :after (websocket simple-httpd org-roam)
+  :bind (
+	 ("C-c n u i" . org-roam-ui-open)))
 
 ;;; customized C indent formatting
 
@@ -385,5 +399,3 @@
 (add-hook 'java-mode-hook (lambda ()
 			    (setq c-basic-offset 4)
 			    tab-width 4))
-
- 
