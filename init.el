@@ -368,23 +368,23 @@ if the current buffer contains a file"
   (setq org-roam-capture-templates
 	  '(("i" "Idea" plain "%?"
 	     :if-new (file+head "idea/${title}.org"
-				"#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :idea:draft:\n")
+				"#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :idea:\n")
 	     :immediate-finish t
 	     :unarrowed t)
 	    ("r" "Reference Material")
 	    ("rr" "Paper / Website" plain "%?"
 	     :if-new (file+head "reference/paper/${title}.org"
-			        "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :reference:draft:\n")
+			        "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :reference:\n")
 	     :immediate-finish t
 	     :unarrowed t)
 	    ("rc" "Course Notes (lecture, textbook, etc.)" plain "%?"
 	     :if-new (file+head "reference/course/${title}.org"
-			        "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :reference:draft:\n")
+			        "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :reference:\n")
 	     :immediate-finish t
 	     :unarrowed t)
 	    ("a" "Article" plain "%?"
 	     :if-new (file+head "articles/${title}.org"
-				"#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :article:draft:\n")
+				"#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :article:\n")
 	     :immediate-finish t
 	     :unarrowed t)))
   
@@ -402,13 +402,36 @@ if the current buffer contains a file"
 	       ("C-c n I" . org-roam-node-insert-immediate)
 	       ("C-M-i" . completion-at-point))))
 
+(defun ska/tag-new-node-as-draft ()
+  (org-roam-tag-add ("draft")))
+(add-hook 'org-roam-capture-new-node-hook #'ska/tag-new-node-as-draft)
+
 (use-package citar
   :after org ;; depends on org-directory
   :bind (("C-c b" . citar-insert-citation)
 	 :map minibuffer-local-map
 	 ("M-b" . citar-insert-preset))
   :custom
-  (citar-bibliography '((concat (file-truename org-directory) "/biblio.bib"))))
+  (citar-bibliography (concat (file-truename org-directory) "/biblio.bib")))
+
+;; source: https://jethrokuan.github.io/org-roam-guide/
+(defun ska/org-roam-node-from-cite (keys-entries)
+  "Create an org roam node from the Citar bibliography."
+  (interactive (list (citar-select-ref :multiple nil :rebuild-cache t)))
+  (let ((title (citar--format-entry-no-widths (cdr keys-entries)
+                                              "${author editor} :: ${title}")))
+    (org-roam-capture- :templates
+                       '(("rr" "reference" plain "%?" :if-new
+                          (file+head "reference/paper/${citekey}.org"
+                                     ":PROPERTIES:
+:ROAM_REFS: [cite:@${citekey}]
+:END:
+#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :reference:\n")
+                            :immediate-finish t
+                            :unnarrowed t))
+                         :info (list :citekey (car keys-entries))
+                         :node (org-roam-node-create :title title)
+                         :props '(:finalize find-file))))
 
 (use-package deft
   :config
