@@ -389,30 +389,32 @@ if the current buffer contains a file"
 	     :unarrowed t)))
   
   :bind (("C-c n f" . org-roam-node-find)
-	 ("C-c n r" . org-mode-node-random)
-	 (:map org-mode-map
-	       ("C-c n i" . org-roam-node-insert)
-	       ("C-c n l" . org-roam-buffer-toggle)
-	       ; add tag to current node
-	       ("C-c n t" . org-roam-tag-add)
-	       ; create alias for node
-	       ("C-c n a" . org-roam-alias-add)
-	       ; promote heading in file to node
-	       ("C-c n o" . org-id-get-create)
-	       ("C-c n I" . org-roam-node-insert-immediate)
-	       ("C-M-i" . completion-at-point))))
+	 ("C-c n r" . org-mode-node-random)))
 
-(defun ska/tag-new-node-as-draft ()
-  (org-roam-tag-add ("draft")))
-(add-hook 'org-roam-capture-new-node-hook #'ska/tag-new-node-as-draft)
+(setq bibtex-user-optional-fields '(("keywords" "Keywords to describe the entry" "")
+                                    ("file" "Link to document file." ":"))
+      bibtex-align-at-equal-sign t)
+
+(setq bib-files-directory (directory-files org-directory t "^[A-Z|a-z].+.bib")
+      pdf-files-directory (concat (getenv "HOME") "/OneDrive - Univesity of Illinois - Urbana/Papers"))
+
+(use-package ivy-bibtex
+  :config
+  (setq bibtex-completion-bibliography bib-files-directory
+        bibtex-completion-library-path pdf-files-directory
+        bibtex-completion-pdf-field "File"
+        bibtex-completion-notes-path org-directory
+        bibtex-completion-additional-search-fields '(keywords))
+  :bind
+  (("C-c b" . ivy-bibtex)))
 
 (use-package citar
-  :after org ;; depends on org-directory
-  :bind (("C-c b" . citar-insert-citation)
-	 :map minibuffer-local-map
-	 ("M-b" . citar-insert-preset))
-  :custom
-  (citar-bibliography (concat (file-truename org-directory) "/biblio.bib")))
+ :after org ;; depends on org-directory
+ :bind (("C-c n b" . citar-insert-citation)
+	:map minibuffer-local-map
+	("M-b" . citar-insert-preset))
+ :custom
+ (citar-bibliography (concat (file-truename org-directory) "/biblio.bib")))
 
 ;; source: https://jethrokuan.github.io/org-roam-guide/
 (defun ska/org-roam-node-from-cite (keys-entries)
