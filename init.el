@@ -308,6 +308,8 @@ if the current buffer contains a file"
 	   (setq org-hide-emphasis-markers nil))
 	 (org-mode)))
 
+(setq org-directory (concat (getenv "HOME") "/OneDrive - University of Illinois - Urbana/OrgRoamNotes"))
+
 (use-package org
   :hook (org-mode . ska/org-mode-setup)
   :config
@@ -332,8 +334,6 @@ if the current buffer contains a file"
 (use-package visual-fill-column
   :hook (org-mode . ska/org-mode-visual-fill))
 
-(setq org-directory (concat (getenv "HOME") "/OneDrive - University of Illinois - Urbana/OrgRoamNotes"))
-
 ;; allows creating new node on page without opening it (stay on same file after inserting link to new file)
 (defun org-roam-node-insert-immediate (arg &rest args)
   (interactive "P")
@@ -352,8 +352,42 @@ if the current buffer contains a file"
   (org-roam-directory (file-truename org-directory))
   (org-roam-completion-everywhere t)
   :config
-  (setq org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+  (cl-defmethod org-roam-node-type ((node org-roam-node))
+    "Return the TYPE of NODE."
+    (condition-case nil
+	(capitalize
+	 (file-name-nondirectory
+	  (directory-file-name
+           (file-name-directory
+            (file-relative-name (org-roam-node-file node) org-roam-directory)))))
+      (error "")))
+  
+  (setq org-roam-node-display-template (concat "${type:15} ${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
   (org-roam-db-autosync-mode)
+  ;; source: https://jethrokuan.github.io/org-roam-guide/
+  (setq org-roam-capture-templates
+	  '(("i" "Idea" plain "%?"
+	     :if-new (file+head "idea/${title}.org"
+				"#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :idea:draft:\n")
+	     :immediate-finish t
+	     :unarrowed t)
+	    ("r" "Reference Material")
+	    ("rr" "Paper / Website" plain "%?"
+	     :if-new (file+head "reference/paper/${title}.org"
+			        "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :reference:draft:\n")
+	     :immediate-finish t
+	     :unarrowed t)
+	    ("rc" "Course Notes (lecture, textbook, etc.)" plain "%?"
+	     :if-new (file+head "reference/course/${title}.org"
+			        "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :reference:draft:\n")
+	     :immediate-finish t
+	     :unarrowed t)
+	    ("a" "Article" plain "%?"
+	     :if-new (file+head "articles/${title}.org"
+				"#+title: ${title}\n#+author: Shayan Azmoodeh\n#+tags: :article:draft:\n")
+	     :immediate-finish t
+	     :unarrowed t)))
+  
   :bind (("C-c n f" . org-roam-node-find)
 	 ("C-c n r" . org-mode-node-random)
 	 (:map org-mode-map
