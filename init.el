@@ -308,8 +308,6 @@ if the current buffer contains a file"
 	   (setq org-hide-emphasis-markers nil))
 	 (org-mode)))
 
-(setq org-directory (concat (getenv "HOME") "/OneDrive - University of Illinois - Urbana/OrgRoamNotes"))
-
 (use-package org
   :hook (org-mode . ska/org-mode-setup)
   :config
@@ -341,6 +339,8 @@ if the current buffer contains a file"
 	(org-roam-capture-templates (list (append (car org-roam-capture-templates)
       '(:immediate-finish t)))))
     (apply #'org-roam-node-insert args)))
+
+(setq org-directory (concat (getenv "HOME") "/OneDrive - University of Illinois - Urbana/OrgRoamNotes"))
 
 (use-package org-roam
   :after org
@@ -401,6 +401,14 @@ if the current buffer contains a file"
 	       ("C-c n o" . org-id-get-create)
 	       ("C-c n I" . org-roam-node-insert-immediate)
 	       ("C-M-i" . completion-at-point))))
+
+(use-package citar
+  :after org ;; depends on org-directory
+  :bind (("C-c b" . citar-insert-citation)
+	 :map minibuffer-local-map
+	 ("M-b" . citar-insert-preset))
+  :custom
+  (citar-bibliography '((concat (file-truename org-directory) "/biblio.bib"))))
 
 (use-package deft
   :config
