@@ -317,6 +317,30 @@ if the current buffer contains a file"
 	 ;; toggle org mode emphasis markers on and off
 	 ("C-c s e" . ska/org-mode-toggle-hide-emphasis-markers)))
 
+
+(setq org-confirm-babel-evaluate nil)
+
+(require 'org-tempo)
+(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
+
+(org-babel-do-load-language
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (shell . t)
+   (python . t)))
+
+;; automatically tangle emacs config org file when saving
+(defun ska/org-babel-tangle-config ()
+  "Tangle code in org file when the file is saved if the file is the Emacs config file"
+  (when (string-equal (buffer-file-name)
+		      (file-truename "~/.emacs.d/init.org"))
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle))))
+(add-hook 'org-mode-hook (
+			  lambda () (add-hook 'after-save-hook #'ska/org-babel-tangle-config)))
+
 ;; make headings in orgmode look nicer
 (use-package org-bullets
   :after org
