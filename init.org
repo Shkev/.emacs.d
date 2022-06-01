@@ -316,7 +316,7 @@ Most of the UI related packages require =all-the-icons=. It's used to display gr
     :if (display-graphic-p))
 #+end_src
 
-*Make sure to run =M-x all-the-icons-install-fonts= after installing for everything to work correctly.*
+Make sure to run =M-x all-the-icons-install-fonts= after installing for everything to work correctly.
 
 *** Centaur Tabs
 
