@@ -1,6 +1,6 @@
 #+TITLE: Emacs Configuration
 #+AUTHOR:Shayan Azmoodeh
-#+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/new-init.el
+#+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
 
 * Character Encoding Scheme
 
@@ -38,20 +38,26 @@ We set the default font for each of these classes which can be set as the defaul
 
 #+name: set-face-attributes
 #+begin_src emacs-lisp
-  ;; font size/style
-  (set-face-attribute 'default nil
-                      :font "Consolas"
-                      :height 130)
-  ;; set fixed pitch face font
-  (set-face-attribute 'fixed-pitch nil
-                      :font "Consolas"
-                      :height 130)
-  ;; set the variable pitch face font
-  (set-face-attribute 'variable-pitch nil
-                      :font "Calibri"
-                      :height 130
-                      :weight 'regular)
+    ;; font size/style
+
+    (setq fixed-pitch-font "DejaVu Sans Mono"
+          variable-pitch-font "Cambria")
+
+    (set-face-attribute 'default nil
+                        :font fixed-pitch-font
+                        :height 130)
+    ;; set fixed pitch face font
+    (set-face-attribute 'fixed-pitch nil
+                        :font fixed-pitch-font
+                        :height 130)
+    ;; set the variable pitch face font
+    (set-face-attribute 'variable-pitch nil
+                        :font variable-pitch-font
+                        :height 130
+                        :weight 'regular)
 #+end_src
+
+#+RESULTS: set-face-attributes
 
 ** Line Numbers
 
@@ -341,7 +347,7 @@ Centaur tabs gives us /tabs in emacs/ and makes it look more like a traditional 
           x-underline-at-descent-line t
           centaur-tabs-modified-marker "●")
     (centaur-tabs-headline-match)
-    (centaur-tabs-change-fonts "Calibri" 150)
+    (centaur-tabs-change-fonts variable-pitch-font 150)
     (setq uniquify-separator "/")
     (setq uniquify-buffer-name-style 'forward)
     :hook
@@ -466,7 +472,7 @@ Org mode is what I am using to type this document. It is a plaintext markdown fo
 I implemented multiple functions to simplify the configuration of =org=.
 
 #+name:org-config-funcs
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :results none
   (defun ska/org-font-setup ()
     ;; Replace list hyphen with dot
     (font-lock-add-keywords 'org-mode
@@ -476,7 +482,7 @@ I implemented multiple functions to simplify the configuration of =org=.
   (defun ska/org-mode-setup ()
     "Set up org mode"
     (org-indent-mode)
-    (variable-pitch-mode -1)
+    (variable-pitch-mode 1)
     (visual-line-mode 1)
     ;; scale font size of headers
     (dolist (face '((org-level-1 . 1.2)
@@ -488,7 +494,7 @@ I implemented multiple functions to simplify the configuration of =org=.
                     (org-level-7 . 1.1)
                     (org-level-8 . 1.1)))
       (set-face-attribute (car face) nil
-                          :font "Calibri"
+                          :font variable-pitch-font
                           :weight 'regular
                           :height (cdr face))))
 
@@ -504,7 +510,7 @@ I implemented multiple functions to simplify the configuration of =org=.
 Change the =org-directory= if the location of org-roam files changes.
 
 #+name: use-package-org
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :results none
   (use-package org
     :hook (org-mode . ska/org-mode-setup)
     :config
@@ -522,6 +528,19 @@ By default org mode displays emphasis markers. The keybinding =C-c s e= toggles 
 *** UI Changes
 
 Now we make org document look nicer in org mode by changing the way the heading markers look and placing margins on each side of the text.
+
+**** Mixed Pitch
+=mixed-pitch-mode= allows using both fixed pitch and variable pitch fonts in org mode. It automatically changes the fonts so tables and source code blocks use the fixed-pitch font while all other text uses the variable pitch font. I enable mixed pitch mode in all text modes.
+
+#+begin_src emacs-lisp
+  (use-package mixed-pitch
+    :hook
+    ;; If you want it in all text modes:
+    (text-mode . mixed-pitch-mode))
+#+end_src
+
+#+RESULTS:
+| mixed-pitch-mode | text-mode-hook-identify |
 
 **** Org Bullets
 
