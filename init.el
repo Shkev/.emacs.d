@@ -220,6 +220,9 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
+;; use emacs keybinding when editing files (insert mode)
+(setq evil-disable-insert-state-bindings t)
+
 (use-package evil
   :init
   (setq evil-want-integration t)

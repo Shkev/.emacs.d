@@ -1,6 +1,6 @@
 #+TITLE: Emacs Configuration
 #+AUTHOR:Shayan Azmoodeh
-#+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
+#+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el :results none
 
 * Character Encoding Scheme
 
@@ -413,6 +413,12 @@ Colors parenthesis and other delimiters so matching delimiters are the same colo
 ** Evil
 
 Evil (Emacs Vim Layer) is a layer of Vim on top of Emacs. Basically I've configured it to just give Emacs different editing modes like Vim and to use Vim keybindings when in the "Normal state". When in "Insert State" it uses regular Emacs keybindings (I didn't want to learn an entirely new set of keybindings).
+
+#+name: emacs-keybind-insert-state
+#+begin_src emacs-lisp
+  ;; use emacs keybinding when editing files (insert mode)
+  (setq evil-disable-insert-state-bindings t)
+#+end_src
 
 #+name: use-package-evil
 #+begin_src emacs-lisp
