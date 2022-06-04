@@ -12,16 +12,20 @@
   (load custom-file))
 
 ;; font size/style
+
+(setq fixed-pitch-font "DejaVu Sans Mono"
+      variable-pitch-font "Cambria")
+
 (set-face-attribute 'default nil
-                    :font "Consolas"
+                    :font fixed-pitch-font
                     :height 130)
 ;; set fixed pitch face font
 (set-face-attribute 'fixed-pitch nil
-                    :font "Consolas"
+                    :font fixed-pitch-font
                     :height 130)
 ;; set the variable pitch face font
 (set-face-attribute 'variable-pitch nil
-                    :font "Calibri"
+                    :font variable-pitch-font
                     :height 130
                     :weight 'regular)
 
@@ -176,7 +180,7 @@
         x-underline-at-descent-line t
         centaur-tabs-modified-marker "●")
   (centaur-tabs-headline-match)
-  (centaur-tabs-change-fonts "Calibri" 150)
+  (centaur-tabs-change-fonts variable-pitch-font 150)
   (setq uniquify-separator "/")
   (setq uniquify-buffer-name-style 'forward)
   :hook
@@ -258,7 +262,7 @@
 (defun ska/org-mode-setup ()
   "Set up org mode"
   (org-indent-mode)
-  (variable-pitch-mode -1)
+  (variable-pitch-mode 1)
   (visual-line-mode 1)
   ;; scale font size of headers
   (dolist (face '((org-level-1 . 1.2)
@@ -270,7 +274,7 @@
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
     (set-face-attribute (car face) nil
-                        :font "Calibri"
+                        :font variable-pitch-font
                         :weight 'regular
                         :height (cdr face))))
 
@@ -292,6 +296,11 @@
          ("C-c s e" . ska/org-mode-toggle-hide-emphasis-markers)))
 
 (setq org-directory (concat (getenv "HOME") "/OneDrive - University of Illinois - Urbana/OrgRoamNotes"))
+
+(use-package mixed-pitch
+  :hook
+  ;; If you want it in all text modes:
+  (text-mode . mixed-pitch-mode))
 
 ;; make headings in orgmode look nicer
 (use-package org-bullets
@@ -426,6 +435,35 @@
          ("M-b" . citar-insert-preset))
   :custom
   (citar-bibliography (concat (file-truename org-directory) "/biblio.bib")))
+
+(defun ska/configure-eshell ()
+  ;; Save command history when commands are entered
+  (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
+
+  ;; Truncate buffer for performance
+  (add-to-list 'eshell-output-filter-functions 'eshell-truncate-buffer)
+
+  ;; Bind some useful keys for evil-mode
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "C-r") 'counsel-esh-history)
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "<home>") 'eshell-bol)
+  (evil-normalize-keymaps)
+
+  (setq eshell-history-size         10000
+        eshell-buffer-maximum-lines 10000
+        eshell-hist-ignoredups t
+        eshell-scroll-to-bottom-on-input t))
+
+;; eshell comes with Emacs. This allows us to configure it
+(use-package eshell
+  :hook (eshell-first-time-mode . ska/configure-eshell)
+  :config
+  (with-eval-after-load 'esh-opt
+    (setq eshell-destroy-buffer-when-process-dies t)
+    (setq eshell-visual-commands '("htop" "zsh" "vim")))
+  (eshell-git-prompt-use-theme 'robbyrussell))
+
+(use-package eshell-git-prompt
+  :after eshell)
 
 ;; automatically tangle emacs config org file when saving
 (defun ska/org-babel-tangle-config ()

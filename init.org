@@ -775,6 +775,47 @@ Citar is another helpful package for managing and inserting references/citations
 
 Note citar also needs the path to the bibliography so *update the path if it changes*. It should really only need to be updated if the filename changes because the rest of the path is dependent on the =org-directory=.
 
+** EShell
+Eshell provides a linux terminal emulator in Emacs written entirely in emacs lisp. Note that this causes some commands to be slower than they normally would be in a regular linux shell.
+
+#+name: use-package-eshell
+#+begin_src emacs-lisp :results none
+  (defun ska/configure-eshell ()
+    ;; Save command history when commands are entered
+    (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
+
+    ;; Truncate buffer for performance
+    (add-to-list 'eshell-output-filter-functions 'eshell-truncate-buffer)
+
+    ;; Bind some useful keys for evil-mode
+    (evil-define-key '(normal insert visual) eshell-mode-map (kbd "C-r") 'counsel-esh-history)
+    (evil-define-key '(normal insert visual) eshell-mode-map (kbd "<home>") 'eshell-bol)
+    (evil-normalize-keymaps)
+
+    (setq eshell-history-size         10000
+          eshell-buffer-maximum-lines 10000
+          eshell-hist-ignoredups t
+          eshell-scroll-to-bottom-on-input t))
+
+  ;; eshell comes with Emacs. This allows us to configure it
+  (use-package eshell
+    :hook (eshell-first-time-mode . ska/configure-eshell)
+    :config
+    (with-eval-after-load 'esh-opt
+      (setq eshell-destroy-buffer-when-process-dies t)
+      (setq eshell-visual-commands '("htop" "zsh" "vim")))
+    (eshell-git-prompt-use-theme 'robbyrussell))
+#+end_src
+
+*** Git Prompt
+The =eshell-git-prompt= package displays the git info (i.e., current branch) next to the terminal prompt.
+
+#+name: use-package-eshell-git-prompt
+#+begin_src emacs-lisp :results none
+  (use-package eshell-git-prompt
+    :after eshell)
+#+end_src
+
 * Custom Functions
 ** Org
 *** Org Babel
