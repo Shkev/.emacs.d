@@ -680,7 +680,8 @@ Org Roam is a note taking framework that allows implementing the Zettelkasten me
              :immediate-finish t
              :unarrowed t)))
     :bind (("C-c n f" . org-roam-node-find)
-           ("C-c n r" . org-roam-node-random)))
+           ("C-c n r" . org-roam-node-random)
+           ("C-c n i" . org-roam-node-insert)))
 
 #+end_src
 

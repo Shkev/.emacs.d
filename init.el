@@ -391,7 +391,8 @@
            :immediate-finish t
            :unarrowed t)))
   :bind (("C-c n f" . org-roam-node-find)
-         ("C-c n r" . org-roam-node-random)))
+         ("C-c n r" . org-roam-node-random)
+         ("C-c n i" . org-roam-node-insert)))
 
 (use-package deft
   :after org
