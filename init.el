@@ -370,23 +370,23 @@
   ;; source: https://jethrokuan.github.io/org-roam-guide/
   (setq org-roam-capture-templates
         '(("i" "Idea" plain "%?"
-           :if-new (file+head "idea/${title}.org"
+           :if-new (file+head "idea/$%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :idea:\n")
            :immediate-finish t
            :unarrowed t)
           ("r" "Reference Material")
           ("rr" "Paper / Website" plain "%?"
-           :if-new (file+head "reference/paper/${title}.org"
+           :if-new (file+head "reference/paper/$%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
            :immediate-finish t
            :unarrowed t)
           ("rc" "Course Notes (lecture, textbook, etc.)" plain "%?"
-           :if-new (file+head "reference/course/${title}.org"
+           :if-new (file+head "reference/course/%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
            :immediate-finish t
            :unarrowed t)
           ("a" "Article" plain "%?"
-           :if-new (file+head "articles/${title}.org"
+           :if-new (file+head "articles/$%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :article:\n")
            :immediate-finish t
            :unarrowed t)))
