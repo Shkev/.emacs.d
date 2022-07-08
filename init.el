@@ -394,9 +394,10 @@
          ("C-c n r" . org-roam-node-random)
          ("C-c n i" . org-roam-node-insert)
          ("C-c n I" . org-roam-node-insert-immediate)
-         ("C-c n t" . org-roam-tag-add)
-         :map org-mode-map
-         ("C-M-i" . completion-at-point)))
+         (:map org-mode-map
+               (("C-M-i" . completion-at-point)
+                ("C-c n l" . org-roam-buffler-toggle)
+                ("C-c n t" . org-roam-tag-add)))))
 
 (use-package deft
   :after org
