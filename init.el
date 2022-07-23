@@ -380,11 +380,18 @@
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
            :immediate-finish t
            :unarrowed t)
-          ("rc" "Course Notes (lecture, textbook, etc.)" plain "%?"
-           :if-new (file+head "reference/course/%<%Y%m%d%H%M%S>-${slug}.org"
+          ("rc" "Course Material")
+          ("rcn" "Course Notes (lecture, textbook, etc.)" plain "%?"
+           :if-new (file+head "reference/course/notes/%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
            :immediate-finish t
            :unarrowed t)
+          ("rci" "Course Index" plain "%?"
+             :if-new (file+head "reference/course/index/%<%Y%m%d%H%M%S>-${slug}.org"
+                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
+             :immediate-finish t
+             :unarrowed t)
+
           ("a" "Article" plain "%?"
            :if-new (file+head "articles/$%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :article:\n")

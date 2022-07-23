@@ -625,68 +625,75 @@ Org Roam is a note taking framework that allows implementing the Zettelkasten me
 
 #+name: use-package-org-roam
 #+begin_src emacs-lisp
-    ;; allows creating new node on page without opening it (stay on same file after inserting link to new file)
-    (defun org-roam-node-insert-immediate (arg &rest args)
-      (interactive "P")
-      (let ((args (cons arg args))
-            (org-roam-capture-templates (list (append (car org-roam-capture-templates)
-                                                      '(:immediate-finish t)))))
-        (apply #'org-roam-node-insert args)))
+  ;; allows creating new node on page without opening it (stay on same file after inserting link to new file)
+  (defun org-roam-node-insert-immediate (arg &rest args)
+    (interactive "P")
+    (let ((args (cons arg args))
+          (org-roam-capture-templates (list (append (car org-roam-capture-templates)
+                                                    '(:immediate-finish t)))))
+      (apply #'org-roam-node-insert args)))
 
-    (use-package org-roam
-      :after org
-      :ensure t
-      :init
-      ;; suppress v2 upgrade warning
-      (setq org-roam-v2-ack t)
-      :custom
-      (org-roam-directory (file-truename org-directory))
-      (org-roam-completion-everywhere t)
-      :config
-      (cl-defmethod org-roam-node-type ((node org-roam-node))
-        "Return the TYPE of NODE."
-        (condition-case nil
-            (capitalize
-             (file-name-nondirectory
-              (directory-file-name
-               (file-name-directory
-                (file-relative-name (org-roam-node-file node) org-roam-directory)))))
-          (error "")))
+  (use-package org-roam
+    :after org
+    :ensure t
+    :init
+    ;; suppress v2 upgrade warning
+    (setq org-roam-v2-ack t)
+    :custom
+    (org-roam-directory (file-truename org-directory))
+    (org-roam-completion-everywhere t)
+    :config
+    (cl-defmethod org-roam-node-type ((node org-roam-node))
+      "Return the TYPE of NODE."
+      (condition-case nil
+          (capitalize
+           (file-name-nondirectory
+            (directory-file-name
+             (file-name-directory
+              (file-relative-name (org-roam-node-file node) org-roam-directory)))))
+        (error "")))
 
-      (setq org-roam-node-display-template (concat "${type:15} ${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
-      (org-roam-db-autosync-mode)
-      ;; creating capture templates for org-roam notes
-      ;; source: https://jethrokuan.github.io/org-roam-guide/
-      (setq org-roam-capture-templates
-            '(("i" "Idea" plain "%?"
-               :if-new (file+head "idea/$%<%Y%m%d%H%M%S>-${slug}.org"
-                                  "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :idea:\n")
-               :immediate-finish t
-               :unarrowed t)
-              ("r" "Reference Material")
-              ("rr" "Paper / Website" plain "%?"
-               :if-new (file+head "reference/paper/$%<%Y%m%d%H%M%S>-${slug}.org"
+    (setq org-roam-node-display-template (concat "${type:15} ${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+    (org-roam-db-autosync-mode)
+    ;; creating capture templates for org-roam notes
+    ;; source: https://jethrokuan.github.io/org-roam-guide/
+    (setq org-roam-capture-templates
+          '(("i" "Idea" plain "%?"
+             :if-new (file+head "idea/$%<%Y%m%d%H%M%S>-${slug}.org"
+                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :idea:\n")
+             :immediate-finish t
+             :unarrowed t)
+            ("r" "Reference Material")
+            ("rr" "Paper / Website" plain "%?"
+             :if-new (file+head "reference/paper/$%<%Y%m%d%H%M%S>-${slug}.org"
+                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
+             :immediate-finish t
+             :unarrowed t)
+            ("rc" "Course Material")
+            ("rcn" "Course Notes (lecture, textbook, etc.)" plain "%?"
+             :if-new (file+head "reference/course/notes/%<%Y%m%d%H%M%S>-${slug}.org"
+                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
+             :immediate-finish t
+             :unarrowed t)
+            ("rci" "Course Index" plain "%?"
+               :if-new (file+head "reference/course/index/%<%Y%m%d%H%M%S>-${slug}.org"
                                   "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
                :immediate-finish t
                :unarrowed t)
-              ("rc" "Course Notes (lecture, textbook, etc.)" plain "%?"
-               :if-new (file+head "reference/course/%<%Y%m%d%H%M%S>-${slug}.org"
-                                  "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
-               :immediate-finish t
-               :unarrowed t)
-              ("a" "Article" plain "%?"
-               :if-new (file+head "articles/$%<%Y%m%d%H%M%S>-${slug}.org"
-                                  "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :article:\n")
-               :immediate-finish t
-               :unarrowed t)))
-      :bind (("C-c n f" . org-roam-node-find)
-             ("C-c n r" . org-roam-node-random)
-             ("C-c n i" . org-roam-node-insert)
-             ("C-c n I" . org-roam-node-insert-immediate)
-             (:map org-mode-map
-                   (("C-M-i" . completion-at-point)
-                    ("C-c n l" . org-roam-buffler-toggle)
-                    ("C-c n t" . org-roam-tag-add)))))
+
+            ("a" "Article" plain "%?"
+             :if-new (file+head "articles/$%<%Y%m%d%H%M%S>-${slug}.org"
+                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :article:\n")
+             :immediate-finish t
+             :unarrowed t)))
+    :bind (("C-c n f" . org-roam-node-find)
+           ("C-c n r" . org-roam-node-random)
+           ("C-c n i" . org-roam-node-insert)
+           ("C-c n I" . org-roam-node-insert-immediate)
+           (:map org-mode-map
+                 (("C-M-i" . completion-at-point)
+                  ("C-c n l" . org-roam-buffler-toggle)
+                  ("C-c n t" . org-roam-tag-add)))))
 
 #+end_src
 
