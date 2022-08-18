@@ -107,6 +107,13 @@ To make Emacs's UI less distracting and encourage us to use the keyboard to cont
 
 #+RESULTS: enable-keyboard-centric
 
+** Smoother Mouse Scrolling
+
+#+begin_src emacs-lisp
+  (setq mouse-wheel-scroll-amount '(0.01))
+  (setq mouse-wheel-progressive-speed nil)
+#+end_src
+
 ** Miscellaneous
 Setting miscellaneous UI configurations.
 
@@ -408,6 +415,15 @@ Colors parenthesis and other delimiters so matching delimiters are the same colo
 #+begin_src emacs-lisp
   (use-package rainbow-delimiters
     :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
+
+*** Smooth Scrolling
+Adds global mode that make scrolling in Emacs with a mouse smoother.
+
+#+name: use-package-smooth-scrolling
+#+begin_src emacs-lisp
+    (use-package smooth-scrolling
+      :init (smooth-scrolling-mode 1))
 #+end_src
 
 ** Evil

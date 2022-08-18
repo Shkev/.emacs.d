@@ -51,6 +51,9 @@
 ; Don't display pop-up UI prompts
 (setq use-dialog-box nil)
 
+(setq mouse-wheel-scroll-amount '(0.01))
+(setq mouse-wheel-progressive-speed nil)
+
 ;; Don't show the splash startup screen
 (setq inhibit-startup-message t)
 
@@ -219,6 +222,9 @@
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
+
+(use-package smooth-scrolling
+  :init (smooth-scrolling-mode 1))
 
 ;; use emacs keybinding when editing files (insert mode)
 (setq evil-disable-insert-state-bindings t)
