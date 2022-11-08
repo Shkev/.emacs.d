@@ -89,6 +89,8 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+(use-package gnu-elpa-keyring-update)
+
 (use-package which-key
   :init (which-key-mode)
   :diminish which-key-mode
@@ -383,34 +385,39 @@
           ("r" "Reference Material")
           ("rr" "Paper / Website" plain "%?"
            :if-new (file+head "reference/paper/$%<%Y%m%d%H%M%S>-${slug}.org"
-                              "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
+                              "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
            :immediate-finish t
            :unarrowed t)
           ("rc" "Course Material")
           ("rcn" "Course Notes (lecture, textbook, etc.)" plain "%?"
            :if-new (file+head "reference/course/notes/%<%Y%m%d%H%M%S>-${slug}.org"
-                              "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
+                              "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
            :immediate-finish t
            :unarrowed t)
           ("rci" "Course Index" plain "%?"
-             :if-new (file+head "reference/course/index/%<%Y%m%d%H%M%S>-${slug}.org"
-                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
-             :immediate-finish t
-             :unarrowed t)
+           :if-new (file+head "reference/course/index/%<%Y%m%d%H%M%S>-${slug}.org"
+                              "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
+           :immediate-finish t
+           :unarrowed t)
 
           ("a" "Article" plain "%?"
            :if-new (file+head "articles/$%<%Y%m%d%H%M%S>-${slug}.org"
-                              "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :article:\n")
+                              "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :article:\n")
            :immediate-finish t
-           :unarrowed t)))
+           :unarrowed t))
+        time-stamp-active t
+        time-stamp-start "#\\+lastmod: [ \t]*"
+        time-stamp-end "$")
   :bind (("C-c n f" . org-roam-node-find)
          ("C-c n r" . org-roam-node-random)
          ("C-c n i" . org-roam-node-insert)
          ("C-c n I" . org-roam-node-insert-immediate)
          (:map org-mode-map
                (("C-M-i" . completion-at-point)
-                ("C-c n l" . org-roam-buffler-toggle)
+                ("C-c n l" . org-roam-buffer-toggle)
                 ("C-c n t" . org-roam-tag-add)))))
+
+(add-hook 'before-save-hook 'time-stamp nil)
 
 (use-package deft
   :after org
@@ -448,15 +455,27 @@
         bibtex-completion-notes-path org-directory
         bibtex-completion-additional-search-fields '(keywords))
   :bind
-  (("C-c b" . ivy-bibtex)))
+  (("C-c B" . ivy-bibtex)))
+
+;; (use-package citar
+;;   :after org ;; depends on org-directory
+;;   :bind (("C-c b" . citar-insert-citation)
+;;          :map minibuffer-local-map
+;;          ("M-b" . citar-insert-preset))
+;;   :custom
+;;   (citar-bibliography (concat (file-truename org-directory) "/biblio.bib")))
 
 (use-package citar
-  :after org ;; depends on org-directory
-  :bind (("C-c n b" . citar-insert-citation)
-         :map minibuffer-local-map
-         ("M-b" . citar-insert-preset))
+  :no-require
   :custom
-  (citar-bibliography (concat (file-truename org-directory) "/biblio.bib")))
+  (org-cite-global-bibliography (list (concat (file-truename org-directory) "/biblio.bib")))
+  (org-cite-insert-processor 'citar)
+  (org-cite-follow-processor 'citar)
+  (org-cite-activate-processor 'citar)
+  (citar-bibliography org-cite-global-bibliography)
+  ;; optional: org-cite-insert is also bound to C-c C-x C-@
+  :bind
+  (:map org-mode-map :package org ("C-c b" . #'org-cite-insert)))
 
 (defun ska/configure-eshell ()
   ;; Save command history when commands are entered
@@ -500,9 +519,8 @@
 ;; source: https://jethrokuan.github.io/org-roam-guide/
 (defun ska/org-roam-node-from-cite (keys-entries)
   "Create an org roam node from the Citar bibliography."
-  (interactive (list (citar-select-ref :multiple nil :rebuild-cache t)))
-  (let ((title (citar--format-entry-no-widths (cdr keys-entries)
-                                              "${author editor} :: ${title}")))
+  (interactive (list (citar-select-refs :multiple nil)))
+  (let ((title "${author} :: ${title}"))
     (org-roam-capture- :templates
                        '(("rr" "reference" plain "%?" :if-new
                           (file+head "reference/paper/${citekey}.org"

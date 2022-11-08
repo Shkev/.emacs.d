@@ -182,6 +182,13 @@ Set-up the locations to fetch packages from and also intialize the /use-package/
 
 #+end_src
 
+We also add the keyring update package to automatically update gpg keys needed to access ELPA.
+
+#+name: use-package-gnu-elpa-keyring-update
+#+begin_src emacs-lisp
+(use-package gnu-elpa-keyring-update)
+#+end_src
+
 ** Convenience
 *** Which Key
 
@@ -682,34 +689,39 @@ Org Roam is a note taking framework that allows implementing the Zettelkasten me
             ("r" "Reference Material")
             ("rr" "Paper / Website" plain "%?"
              :if-new (file+head "reference/paper/$%<%Y%m%d%H%M%S>-${slug}.org"
-                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
+                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
              :immediate-finish t
              :unarrowed t)
             ("rc" "Course Material")
             ("rcn" "Course Notes (lecture, textbook, etc.)" plain "%?"
              :if-new (file+head "reference/course/notes/%<%Y%m%d%H%M%S>-${slug}.org"
-                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
+                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
              :immediate-finish t
              :unarrowed t)
             ("rci" "Course Index" plain "%?"
-               :if-new (file+head "reference/course/index/%<%Y%m%d%H%M%S>-${slug}.org"
-                                  "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
-               :immediate-finish t
-               :unarrowed t)
+             :if-new (file+head "reference/course/index/%<%Y%m%d%H%M%S>-${slug}.org"
+                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
+             :immediate-finish t
+             :unarrowed t)
 
             ("a" "Article" plain "%?"
              :if-new (file+head "articles/$%<%Y%m%d%H%M%S>-${slug}.org"
-                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :article:\n")
+                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :article:\n")
              :immediate-finish t
-             :unarrowed t)))
+             :unarrowed t))
+          time-stamp-active t
+          time-stamp-start "#\\+lastmod: [ \t]*"
+          time-stamp-end "$")
     :bind (("C-c n f" . org-roam-node-find)
            ("C-c n r" . org-roam-node-random)
            ("C-c n i" . org-roam-node-insert)
            ("C-c n I" . org-roam-node-insert-immediate)
            (:map org-mode-map
                  (("C-M-i" . completion-at-point)
-                  ("C-c n l" . org-roam-buffler-toggle)
+                  ("C-c n l" . org-roam-buffer-toggle)
                   ("C-c n t" . org-roam-tag-add)))))
+
+  (add-hook 'before-save-hook 'time-stamp nil)
 
 #+end_src
 
@@ -790,25 +802,37 @@ Since we're using =ivy-bibtex=, we need to install/configure it.
           bibtex-completion-notes-path org-directory
           bibtex-completion-additional-search-fields '(keywords))
     :bind
-    (("C-c b" . ivy-bibtex)))
+    (("C-c B" . ivy-bibtex)))
 #+end_src
 
 *** Citar
 
-Citar is another helpful package for managing and inserting references/citations into documents.
+Citar is another helpful package for managing and inserting references/citations into documents. 
 
 #+name:use-package-citar
 #+begin_src emacs-lisp
+  ;; (use-package citar
+  ;;   :after org ;; depends on org-directory
+  ;;   :bind (("C-c b" . citar-insert-citation)
+  ;;          :map minibuffer-local-map
+  ;;          ("M-b" . citar-insert-preset))
+  ;;   :custom
+  ;;   (citar-bibliography (concat (file-truename org-directory) "/biblio.bib")))
+
   (use-package citar
-    :after org ;; depends on org-directory
-    :bind (("C-c n b" . citar-insert-citation)
-           :map minibuffer-local-map
-           ("M-b" . citar-insert-preset))
+    :no-require
     :custom
-    (citar-bibliography (concat (file-truename org-directory) "/biblio.bib")))
+    (org-cite-global-bibliography (list (concat (file-truename org-directory) "/biblio.bib")))
+    (org-cite-insert-processor 'citar)
+    (org-cite-follow-processor 'citar)
+    (org-cite-activate-processor 'citar)
+    (citar-bibliography org-cite-global-bibliography)
+    ;; optional: org-cite-insert is also bound to C-c C-x C-@
+    :bind
+    (:map org-mode-map :package org ("C-c b" . #'org-cite-insert)))
 #+end_src
 
-Note citar also needs the path to the bibliography so *update the path if it changes*. It should really only need to be updated if the filename changes because the rest of the path is dependent on the =org-directory=.
+Note citar also needs the path to the bibliography so *update the path if it changes*. It should really only need to be updated if the filename changes because the rest of the path is dependent on the =org-directory=. 
 
 ** EShell
 Eshell provides a linux terminal emulator in Emacs written entirely in emacs lisp. Note that this causes some commands to be slower than they normally would be in a regular linux shell.
@@ -850,7 +874,6 @@ The =eshell-git-prompt= package displays the git info (i.e., current branch) nex
   (use-package eshell-git-prompt
     :after eshell)
 #+end_src
-
 * Custom Functions
 ** Org
 *** Org Babel
@@ -876,9 +899,8 @@ It also makes use of my org-roam capture template.
   ;; source: https://jethrokuan.github.io/org-roam-guide/
   (defun ska/org-roam-node-from-cite (keys-entries)
     "Create an org roam node from the Citar bibliography."
-    (interactive (list (citar-select-ref :multiple nil :rebuild-cache t)))
-    (let ((title (citar--format-entry-no-widths (cdr keys-entries)
-                                                "${author editor} :: ${title}")))
+    (interactive (list (citar-select-refs :multiple nil)))
+    (let ((title "${author} :: ${title}"))
       (org-roam-capture- :templates
                          '(("rr" "reference" plain "%?" :if-new
                             (file+head "reference/paper/${citekey}.org"
@@ -892,7 +914,9 @@ It also makes use of my org-roam capture template.
                            :node (org-roam-node-create :title title)
                            :props '(:finalize find-file))))
 
+
 #+end_src
+
 ** Miscellaneous
 
 Emacs doesn't have a built in function to delete the file in the current buffer so I implemented one (with help from [[https://emacsredux.com/blog/2013/04/03/delete-file-and-buffer/][this blog]]).
