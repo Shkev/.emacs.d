@@ -457,18 +457,35 @@
   :bind
   (("C-c B" . ivy-bibtex)))
 
-;; (use-package citar
-;;   :after org ;; depends on org-directory
-;;   :bind (("C-c b" . citar-insert-citation)
-;;          :map minibuffer-local-map
-;;          ("M-b" . citar-insert-preset))
-;;   :custom
-;;   (citar-bibliography (concat (file-truename org-directory) "/biblio.bib")))
+(use-package org-ref
+    :config
+    (require 'org-ref-ivy)
+    (setq org-ref-insert-link-function 'org-ref-insert-link-hydra/body
+          org-ref-insert-cite-function 'org-ref-cite-insert-ivy
+          org-ref-insert-label-function 'org-ref-insert-label-link
+          org-ref-insert-ref-function 'org-ref-insert-ref-link
+          org-ref-cite-onclick-function (lambda (_) (org-ref-citation-hydra/body)))
+    (setq org-latex-pdf-process
+          '("pdflatex -interaction nonstopmode -output-directory %o %f"
+            "bibtex %b"
+            "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+            "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+    :bind (:map org-mode-map
+                ("C-c ]" . org-ref-insert-link)
+                ("s-[" . org-ref-insert-link-hydra/body)))
+
+(use-package org-roam-bibtex
+      :after (org-roam ivy-bibtex)
+      :bind (:map org-mode-map ("C-c n b" . orb-note-actions))
+      :config
+      (require 'org-ref))
+
+(org-roam-bibtex-mode)
 
 (use-package citar
-  :no-require
+  :after org ;; depends on org-directory
   :custom
-  (org-cite-global-bibliography (list (concat (file-truename org-directory) "/biblio.bib")))
+  (org-cite-global-bibliography (list (concat (file-truename org-directory) "^[A-Z|a-z].+.bib")))
   (org-cite-insert-processor 'citar)
   (org-cite-follow-processor 'citar)
   (org-cite-activate-processor 'citar)
@@ -476,6 +493,20 @@
   ;; optional: org-cite-insert is also bound to C-c C-x C-@
   :bind
   (:map org-mode-map :package org ("C-c b" . #'org-cite-insert)))
+
+(use-package citar-org-roam
+  :after (org-roam org-roam-bibtex citar)
+  :config
+  (citar-register-notes-source
+   'orb-citar-source (list :name "Org-Roam Notes"
+                           :category 'org-roam-node
+                           :items #'citar-org-roam--get-candidates
+                           :hasitems #'citar-org-roam-has-notes
+                           :open #'citar-org-roam-open-note
+                           :create #'orb-citar-edit-note
+                           :annotate #'citar-org-roam--annotate))
+  :custom
+  (setq citar-notes-source 'orb-citar-source))
 
 (defun ska/configure-eshell ()
   ;; Save command history when commands are entered
@@ -513,6 +544,7 @@
                       (file-truename "~/.emacs.d/init.org"))
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
+
 (add-hook 'org-mode-hook (
                           lambda () (add-hook 'after-save-hook #'ska/org-babel-tangle-config)))
 
@@ -527,7 +559,7 @@
                                      ":PROPERTIES:
 :ROAM_REFS: [cite:@${citekey}]
 :END:
-#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
+#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
                             :immediate-finish t
                             :unnarrowed t))
                          :info (list :citekey (car keys-entries))

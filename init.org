@@ -805,24 +805,57 @@ Since we're using =ivy-bibtex=, we need to install/configure it.
     (("C-c B" . ivy-bibtex)))
 #+end_src
 
-*** Citar
+*** Org Ref
+Org Ref is a package that allows us to work with references more easily within org files. It is similar to citar however it works nicer for inserting citations. It is also required by other reference management packages.
+
+*Generally, I would recommend using org-ref for inserting citations over citar in documents.*
+
+Org ref can also be used to create references to other elements of a document (i.e., when writing a LaTeX document) such as to equations or figures.
+
+#+name:use-package-org-ref
+#+begin_src emacs-lisp
+(use-package org-ref
+    :config
+    (require 'org-ref-ivy)
+    (setq org-ref-insert-link-function 'org-ref-insert-link-hydra/body
+          org-ref-insert-cite-function 'org-ref-cite-insert-ivy
+          org-ref-insert-label-function 'org-ref-insert-label-link
+          org-ref-insert-ref-function 'org-ref-insert-ref-link
+          org-ref-cite-onclick-function (lambda (_) (org-ref-citation-hydra/body)))
+    (setq org-latex-pdf-process
+          '("pdflatex -interaction nonstopmode -output-directory %o %f"
+            "bibtex %b"
+            "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+            "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+    :bind (:map org-mode-map
+                ("C-c ]" . org-ref-insert-link)
+                ("s-[" . org-ref-insert-link-hydra/body)))
+#+end_src
+
+*** Org Roam Bibtex
+ORB is a package that simplifies using citations with a bibtex file within org roam. At the moment I don't really use it for anything but it might be useful later.
+
+#+name:use-package-org-roam-bibtex
+#+begin_src emacs-lisp
+    (use-package org-roam-bibtex
+        :after (org-roam ivy-bibtex)
+        :bind (:map org-mode-map ("C-c n b" . orb-note-actions))
+        :config
+        (require 'org-ref))
+
+  (org-roam-bibtex-mode)
+#+end_src
+
+*** Citar-Org-Roam
 
 Citar is another helpful package for managing and inserting references/citations into documents. 
 
 #+name:use-package-citar
 #+begin_src emacs-lisp
-  ;; (use-package citar
-  ;;   :after org ;; depends on org-directory
-  ;;   :bind (("C-c b" . citar-insert-citation)
-  ;;          :map minibuffer-local-map
-  ;;          ("M-b" . citar-insert-preset))
-  ;;   :custom
-  ;;   (citar-bibliography (concat (file-truename org-directory) "/biblio.bib")))
-
   (use-package citar
-    :no-require
+    :after org ;; depends on org-directory
     :custom
-    (org-cite-global-bibliography (list (concat (file-truename org-directory) "/biblio.bib")))
+    (org-cite-global-bibliography (list (concat (file-truename org-directory) "^[A-Z|a-z].+.bib")))
     (org-cite-insert-processor 'citar)
     (org-cite-follow-processor 'citar)
     (org-cite-activate-processor 'citar)
@@ -830,6 +863,25 @@ Citar is another helpful package for managing and inserting references/citations
     ;; optional: org-cite-insert is also bound to C-c C-x C-@
     :bind
     (:map org-mode-map :package org ("C-c b" . #'org-cite-insert)))
+#+end_src
+
+We also install the extension that plugs into org-roam to help with reference management there.
+
+#+name:use-package-citar-org-roam
+#+begin_src emacs-lisp
+  (use-package citar-org-roam
+    :after (org-roam org-roam-bibtex citar)
+    :config
+    (citar-register-notes-source
+     'orb-citar-source (list :name "Org-Roam Notes"
+                             :category 'org-roam-node
+                             :items #'citar-org-roam--get-candidates
+                             :hasitems #'citar-org-roam-has-notes
+                             :open #'citar-org-roam-open-note
+                             :create #'orb-citar-edit-note
+                             :annotate #'citar-org-roam--annotate))
+    :custom
+    (setq citar-notes-source 'orb-citar-source))
 #+end_src
 
 Note citar also needs the path to the bibliography so *update the path if it changes*. It should really only need to be updated if the filename changes because the rest of the path is dependent on the =org-directory=. 
@@ -888,6 +940,7 @@ I configured org to automatically tangle my init.org file whenever I save it.
                         (file-truename "~/.emacs.d/init.org"))
       (let ((org-confirm-babel-evaluate nil))
         (org-babel-tangle))))
+  
   (add-hook 'org-mode-hook (
                             lambda () (add-hook 'after-save-hook #'ska/org-babel-tangle-config)))
 #+end_src
@@ -907,7 +960,7 @@ It also makes use of my org-roam capture template.
                                        ":PROPERTIES:
   :ROAM_REFS: [cite:@${citekey}]
   :END:
-  ,#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :reference:\n")
+  ,#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
                               :immediate-finish t
                               :unnarrowed t))
                            :info (list :citekey (car keys-entries))
@@ -916,6 +969,8 @@ It also makes use of my org-roam capture template.
 
 
 #+end_src
+
+The function has some usability /issues/ at the moment. To create a new document from a note  
 
 ** Miscellaneous
 
@@ -936,6 +991,7 @@ The function below simply deletes the file in buffer that you are currently on (
                  (kill-buffer))
         (message "Current buffer does not contain a file"))))
 #+end_src
+
 * Custom Language Formatting
 
 Not sure how the code here works... but it works. I'll figure it out later.
