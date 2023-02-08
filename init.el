@@ -379,7 +379,7 @@
   (setq org-roam-capture-templates
         '(("i" "Idea" plain "%?"
            :if-new (file+head "idea/$%<%Y%m%d%H%M%S>-${slug}.org"
-                              "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :idea:\n")
+                              "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :idea:\n")
            :immediate-finish t
            :unarrowed t)
           ("r" "Reference Material")
@@ -475,24 +475,28 @@
                 ("s-[" . org-ref-insert-link-hydra/body)))
 
 (use-package org-roam-bibtex
-      :after (org-roam ivy-bibtex)
-      :bind (:map org-mode-map ("C-c n b" . orb-note-actions))
-      :config
-      (require 'org-ref))
+  :after (org-roam ivy-bibtex)
+  :bind (:map org-mode-map ("C-c n b" . orb-note-actions))
+  :config
+  (require 'org-ref))
 
 (org-roam-bibtex-mode)
 
 (use-package citar
   :after org ;; depends on org-directory
+  :config
+  (setq citar-notes-paths
+          (list (concat (file-truename org-directory) "/reference/paper")))
   :custom
-  (org-cite-global-bibliography (list (concat (file-truename org-directory) "^[A-Z|a-z].+.bib")))
+  (org-cite-global-bibliography (directory-files org-directory t "^[A-Z|a-z].+.bib"))
   (org-cite-insert-processor 'citar)
   (org-cite-follow-processor 'citar)
   (org-cite-activate-processor 'citar)
   (citar-bibliography org-cite-global-bibliography)
-  ;; optional: org-cite-insert is also bound to C-c C-x C-@
+  (citar-org-roam-mode 1) ; enable mode on startup
   :bind
-  (:map org-mode-map :package org ("C-c b" . #'org-cite-insert)))
+  (("C-c n c" . #'citar-create-note)
+  (:map org-mode-map :package org ("C-c b" . #'org-cite-insert))))
 
 (use-package citar-org-roam
   :after (org-roam org-roam-bibtex citar)
@@ -505,6 +509,7 @@
                            :open #'citar-org-roam-open-note
                            :create #'orb-citar-edit-note
                            :annotate #'citar-org-roam--annotate))
+  (setq citar-org-roam-subdir "reference/paper")
   :custom
   (setq citar-notes-source 'orb-citar-source))
 
@@ -536,6 +541,12 @@
 
 (use-package eshell-git-prompt
   :after eshell)
+
+(use-package auctex
+  :ensure t
+  :defer t
+  :custom (setq TeX-parse-self t
+                TeX-auto-save t))
 
 ;; automatically tangle emacs config org file when saving
 (defun ska/org-babel-tangle-config ()

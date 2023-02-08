@@ -265,7 +265,7 @@ Ivy also have many other packages that go along with it to make it work in other
 **** Counsel
 
 Counsel uses Ivy as its backend to complete certain languages at point (i.e. emacs lisp) and also complete command names when the list is opened with =M-x=.
-We are remapping =M-x= to run =counsel-M-x= which is the same as the regular command list but allows us to use the fuzzy search and other features provided by counsel/ivy). Similarly we set the keybindings to open =counsel-ibuffer= instead of the usual buffer list.
+We are remapping =M-x= to run =counsel-M-x= which is the same as the regular command list but allows us to use the fuzzy search and other features provided by counsel/ivy. Similarly we set the keybindings to open =counsel-ibuffer= instead of the usual buffer list.
 
 #+name: use-package-counsel
 #+begin_src emacs-lisp
@@ -640,7 +640,7 @@ Having org automatically open code source blocks is also really useful.
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
 #+end_src
 
-To auto-insert a code block, type =<...= and replace "..." with one of the language codes specified in the code block above (i.e., type =<el= [ =<tab>= ] to create an emacs lisp code block).
+To auto-insert a code block, type =<...>= and replace "..." with one of the language codes specified in the code block above (i.e., type =<el>=  [ =<tab>= ] to create an emacs lisp code block).
 
 ** Org Roam
 
@@ -683,7 +683,7 @@ Org Roam is a note taking framework that allows implementing the Zettelkasten me
     (setq org-roam-capture-templates
           '(("i" "Idea" plain "%?"
              :if-new (file+head "idea/$%<%Y%m%d%H%M%S>-${slug}.org"
-                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+filetags: :idea:\n")
+                                "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :idea:\n")
              :immediate-finish t
              :unarrowed t)
             ("r" "Reference Material")
@@ -837,11 +837,11 @@ ORB is a package that simplifies using citations with a bibtex file within org r
 
 #+name:use-package-org-roam-bibtex
 #+begin_src emacs-lisp
-    (use-package org-roam-bibtex
-        :after (org-roam ivy-bibtex)
-        :bind (:map org-mode-map ("C-c n b" . orb-note-actions))
-        :config
-        (require 'org-ref))
+  (use-package org-roam-bibtex
+    :after (org-roam ivy-bibtex)
+    :bind (:map org-mode-map ("C-c n b" . orb-note-actions))
+    :config
+    (require 'org-ref))
 
   (org-roam-bibtex-mode)
 #+end_src
@@ -854,15 +854,19 @@ Citar is another helpful package for managing and inserting references/citations
 #+begin_src emacs-lisp
   (use-package citar
     :after org ;; depends on org-directory
+    :config
+    (setq citar-notes-paths
+            (list (concat (file-truename org-directory) "/reference/paper")))
     :custom
-    (org-cite-global-bibliography (list (concat (file-truename org-directory) "^[A-Z|a-z].+.bib")))
+    (org-cite-global-bibliography (directory-files org-directory t "^[A-Z|a-z].+.bib"))
     (org-cite-insert-processor 'citar)
     (org-cite-follow-processor 'citar)
     (org-cite-activate-processor 'citar)
     (citar-bibliography org-cite-global-bibliography)
-    ;; optional: org-cite-insert is also bound to C-c C-x C-@
+    (citar-org-roam-mode 1) ; enable mode on startup
     :bind
-    (:map org-mode-map :package org ("C-c b" . #'org-cite-insert)))
+    (("C-c n c" . #'citar-create-note)
+    (:map org-mode-map :package org ("C-c b" . #'org-cite-insert))))
 #+end_src
 
 We also install the extension that plugs into org-roam to help with reference management there.
@@ -880,6 +884,7 @@ We also install the extension that plugs into org-roam to help with reference ma
                              :open #'citar-org-roam-open-note
                              :create #'orb-citar-edit-note
                              :annotate #'citar-org-roam--annotate))
+    (setq citar-org-roam-subdir "reference/paper")
     :custom
     (setq citar-notes-source 'orb-citar-source))
 #+end_src
@@ -925,6 +930,18 @@ The =eshell-git-prompt= package displays the git info (i.e., current branch) nex
 #+begin_src emacs-lisp :results none
   (use-package eshell-git-prompt
     :after eshell)
+#+end_src
+** AUCTeX
+
+AUCTeX is a package that adds a lot of functionality when editing LaTeX documents in Emacs.
+
+#+name: use-package-AUCTeX
+#+begin_src emacs-lisp
+      (use-package auctex
+        :ensure t
+        :defer t
+        :custom (setq TeX-parse-self t
+                      TeX-auto-save t))
 #+end_src
 * Custom Functions
 ** Org
