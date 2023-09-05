@@ -444,7 +444,7 @@
       bibtex-align-at-equal-sign t)
 
 (setq bib-files-directory (directory-files org-directory t "^[A-Z|a-z].+.bib")
-      pdf-files-directory (concat (getenv "HOME") "/OneDrive - Univesity of Illinois - Urbana/Papers"))
+      pdf-files-directory (concat (getenv "HOME") "/Zotero/storage"))
 
 (use-package ivy-bibtex
   :after ivy
@@ -495,8 +495,9 @@
   (citar-bibliography org-cite-global-bibliography)
   (citar-org-roam-mode 1) ; enable mode on startup
   :bind
-  (("C-c n c" . #'citar-create-note)
-  (:map org-mode-map :package org ("C-c b" . #'org-cite-insert))))
+  (("C-c b c" . #'citar-create-note)
+   ("C-c b o" . #'citar-open-notes)
+  (:map org-mode-map :package org ("C-c b i" . #'org-cite-insert))))
 
 (use-package citar-org-roam
   :after (org-roam org-roam-bibtex citar)
@@ -547,6 +548,10 @@
   :defer t
   :custom (setq TeX-parse-self t
                 TeX-auto-save t))
+
+(use-package 2048-game)
+
+(use-package sudoku)
 
 ;; automatically tangle emacs config org file when saving
 (defun ska/org-babel-tangle-config ()
