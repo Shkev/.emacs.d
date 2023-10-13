@@ -957,6 +957,13 @@ The classic 2048 game... in Emacs
 (use-package sudoku)
 #+end_src
 
+*** Slime Volleyball
+Idek what this is but it looked cool.
+
+#+begin_src emacs-lisp
+(use-package slime-volleyball)
+#+end_src
+
 * Custom Functions
 ** Org
 *** Org Babel

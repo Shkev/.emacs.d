@@ -553,6 +553,8 @@
 
 (use-package sudoku)
 
+(use-package slime-volleyball)
+
 ;; automatically tangle emacs config org file when saving
 (defun ska/org-babel-tangle-config ()
   "Tangle code in org file when the file is saved if the file is the Emacs config file"
