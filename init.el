@@ -115,6 +115,7 @@
 
 (use-package ivy
   :bind (("C-s" . swiper)
+         ("C-c a s" . swiper-all)
          :map ivy-minibuffer-map
          ("TAB" . ivy-alt-done)
          ("C-l" . ivy-alt-done)
