@@ -389,6 +389,11 @@
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
            :immediate-finish t
            :unarrowed t)
+          ("ri" "Index" plain "%?"
+           :if-new (file+head "reference/index/$%<%Y%m%d%H%M%S>-${slug}.org"
+                              "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
+           :immediate-finish t
+           :unarrowed t)
           ("rc" "Course Material")
           ("rcn" "Course Notes (lecture, textbook, etc.)" plain "%?"
            :if-new (file+head "reference/course/notes/%<%Y%m%d%H%M%S>-${slug}.org"
