@@ -555,6 +555,10 @@
   :custom (setq TeX-parse-self t
                 TeX-auto-save t))
 
+(use-package yaml-mode
+  :hook yaml-mode . (lambda ()
+     (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
+
 (use-package 2048-game)
 
 (use-package sudoku)

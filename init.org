@@ -935,17 +935,26 @@ The =eshell-git-prompt= package displays the git info (i.e., current branch) nex
   (use-package eshell-git-prompt
     :after eshell)
 #+end_src
-** AUCTeX
+** Language Modes
+*** AUCTeX
 
 AUCTeX is a package that adds a lot of functionality when editing LaTeX documents in Emacs.
 
 #+name: use-package-AUCTeX
 #+begin_src emacs-lisp
-      (use-package auctex
-        :ensure t
-        :defer t
-        :custom (setq TeX-parse-self t
-                      TeX-auto-save t))
+  (use-package auctex
+    :ensure t
+    :defer t
+    :custom (setq TeX-parse-self t
+                  TeX-auto-save t))
+#+end_src
+*** YAML Mode
+Major mode for editing YAML files.
+
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    :hook yaml-mode . (lambda ()
+       (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
 #+end_src
 ** Games
 *** 2048
