@@ -935,7 +935,33 @@ The =eshell-git-prompt= package displays the git info (i.e., current branch) nex
   (use-package eshell-git-prompt
     :after eshell)
 #+end_src
-** Language Modes
+** Programming Language Stuff
+*** Python Related
+**** Conda
+
+Package to help manage Conda virtual environments in Python.
+
+#+name: use-package-conda
+#+begin_src emacs-lisp
+  (use-package conda
+    :custom ((conda-env-initialize-eshell)
+             (conda-env-autoactivate-mode t)))
+
+  ;; also change the default python command (pythonic is used under the hood by conda)
+  (setq pythonic-interpreter "python")
+#+end_src
+
+**** Pyimpsort
+
+Sorts import statements in Python files based on [[https://peps.python.org/pep-0008/#imports][PEP standard]].
+
+#+name: use-package-pyimpsort
+#+begin_src emacs-lisp
+  (use-package pyimpsort
+    :config (eval-after-load 'python
+              '(define-key python-mode-map "\C-c\C-u" #'pyimpsort-buffer)))
+#+end_src
+
 *** AUCTeX
 
 AUCTeX is a package that adds a lot of functionality when editing LaTeX documents in Emacs.
@@ -948,6 +974,7 @@ AUCTeX is a package that adds a lot of functionality when editing LaTeX document
     :custom (setq TeX-parse-self t
                   TeX-auto-save t))
 #+end_src
+
 *** YAML Mode
 Major mode for editing YAML files.
 
@@ -956,6 +983,7 @@ Major mode for editing YAML files.
     :hook yaml-mode . (lambda ()
        (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
 #+end_src
+
 ** Games
 *** 2048
 The classic 2048 game... in Emacs
@@ -1045,9 +1073,9 @@ The function below simply deletes the file in buffer that you are currently on (
         (message "Current buffer does not contain a file"))))
 #+end_src
 
-* Custom Language Formatting
+* Language Setup and Formatting
 
-Not sure how the code here works... but it works. I'll figure it out later.
+Not sure how some of the code here works... but it works. I'll figure it out later.
 
 ** C Formatting
 
@@ -1087,10 +1115,14 @@ Not sure how the code here works... but it works. I'll figure it out later.
 #+end_src
 
 ** Python Formatting
-Changing default tab size to 2 spaces.
+
+Changing default tab size to 2 spaces (or infer indent from existing file). Also changing the default Python command to ="python"= (instead of ="python3"=).
 
 #+begin_src emacs-lisp
+  (setq python-shell-interpreter "python")
+
   (add-hook 'python-mode-hook
             (lambda ()
-              (setq python-indent-offset 2)))
+              (setq python-indent-offset 2)
+              (python-indent-guess-indent-offset)))
 #+end_src

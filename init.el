@@ -549,6 +549,17 @@
 (use-package eshell-git-prompt
   :after eshell)
 
+(use-package conda
+  :custom ((conda-env-initialize-eshell)
+           (conda-env-autoactivate-mode t)))
+
+;; also change the default python command (pythonic is used under the hood by conda)
+(setq pythonic-interpreter "python")
+
+(use-package pyimpsort
+  :config (eval-after-load 'python
+            '(define-key python-mode-map "\C-c\C-u" #'pyimpsort-buffer)))
+
 (use-package auctex
   :ensure t
   :defer t
@@ -634,6 +645,9 @@ if the current buffer contains a file"
                             (setq c-basic-offset 4)
                             tab-width 4))
 
+(setq python-shell-interpreter "python")
+
 (add-hook 'python-mode-hook
           (lambda ()
-            (setq python-indent-offset 2)))
+            (setq python-indent-offset 2)
+            (python-indent-guess-indent-offset)))
