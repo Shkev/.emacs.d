@@ -434,6 +434,19 @@ Adds global mode that make scrolling in Emacs with a mouse smoother.
       :init (smooth-scrolling-mode 1))
 #+end_src
 
+*** Highlight Indentation
+
+Provides a minor mode that clearly shows the indentation levels in your code and which level you are currently on.
+
+#+name: use-package-highlight-indentation
+#+begin_src emacs-lisp
+  (use-package highlight-indent-guides
+    :ensure t
+    :config
+    (add-hook 'python-mode-hook 'highlight-indent-guides-mode)
+    (setq highlight-indent-guides-method 'character))
+#+end_src
+
 ** Evil
 
 Evil (Emacs Vim Layer) is a layer of Vim on top of Emacs. Basically I've configured it to just give Emacs different editing modes like Vim and to use Vim keybindings when in the "Normal state". When in "Insert State" it uses regular Emacs keybindings (I didn't want to learn an entirely new set of keybindings).
@@ -944,8 +957,9 @@ Package to help manage Conda virtual environments in Python.
 #+name: use-package-conda
 #+begin_src emacs-lisp
   (use-package conda
-    :custom ((conda-env-initialize-eshell)
-             (conda-env-autoactivate-mode t)))
+    :custom
+    (conda-env-initialize-eshell)
+    (conda-env-autoactivate-mode t))
 
   ;; also change the default python command (pythonic is used under the hood by conda)
   (setq pythonic-interpreter "python")

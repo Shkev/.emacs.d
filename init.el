@@ -229,6 +229,12 @@
 (use-package smooth-scrolling
   :init (smooth-scrolling-mode 1))
 
+(use-package highlight-indent-guides
+  :ensure t
+  :config
+  (add-hook 'python-mode-hook 'highlight-indent-guides-mode)
+  (setq highlight-indent-guides-method 'character))
+
 ;; use emacs keybinding when editing files (insert mode)
 (setq evil-disable-insert-state-bindings t)
 
@@ -550,8 +556,9 @@
   :after eshell)
 
 (use-package conda
-  :custom ((conda-env-initialize-eshell)
-           (conda-env-autoactivate-mode t)))
+  :custom
+  (conda-env-initialize-eshell)
+  (conda-env-autoactivate-mode t))
 
 ;; also change the default python command (pythonic is used under the hood by conda)
 (setq pythonic-interpreter "python")
