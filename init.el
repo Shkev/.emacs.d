@@ -233,7 +233,13 @@
   :ensure t
   :config
   (add-hook 'python-mode-hook 'highlight-indent-guides-mode)
+  (add-hook 'yaml-mode-hook 'highlight-indent-guides-mode)
   (setq highlight-indent-guides-method 'character))
+
+(use-package origami
+  :ensure t
+  :config
+  (global-origami-mode))
 
 ;; use emacs keybinding when editing files (insert mode)
 (setq evil-disable-insert-state-bindings t)
@@ -556,12 +562,20 @@
   :after eshell)
 
 (use-package conda
+  :ensure t
   :custom
   (conda-env-initialize-eshell)
   (conda-env-autoactivate-mode t))
 
 ;; also change the default python command (pythonic is used under the hood by conda)
 (setq pythonic-interpreter "python")
+
+(use-package anaconda-mode
+  :ensure t
+  :after conda
+  :config
+  (add-hook 'python-mode-hook 'anaconda-mode)
+  (add-hook 'python-mode-hook 'anaconda-eldoc-mode))
 
 (use-package pyimpsort
   :config (eval-after-load 'python

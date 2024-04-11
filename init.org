@@ -444,7 +444,21 @@ Provides a minor mode that clearly shows the indentation levels in your code and
     :ensure t
     :config
     (add-hook 'python-mode-hook 'highlight-indent-guides-mode)
+    (add-hook 'yaml-mode-hook 'highlight-indent-guides-mode)
     (setq highlight-indent-guides-method 'character))
+#+end_src
+
+*** Origami Code Folding
+
+Origami is a package that allows code folding. Helps me not go crazy when working with large code bases (especially Python).
+
+For keymaps, I'm just using the ones provided by evil mode out of the box. With the current setup, this means I can only fold blocks of code in "Normal mode" (and not "Insert mode"), but that's not a big deal. 
+
+#+begin_src emacs-lisp
+  (use-package origami
+    :ensure t
+    :config
+    (global-origami-mode))
 #+end_src
 
 ** Evil
@@ -957,12 +971,26 @@ Package to help manage Conda virtual environments in Python.
 #+name: use-package-conda
 #+begin_src emacs-lisp
   (use-package conda
+    :ensure t
     :custom
     (conda-env-initialize-eshell)
     (conda-env-autoactivate-mode t))
 
   ;; also change the default python command (pythonic is used under the hood by conda)
   (setq pythonic-interpreter "python")
+#+end_src
+
+**** Anaconda Mode
+
+A package that does a bunch of formatting and code completion/navigation stuff. Pretty useful for coding Python.
+
+#+begin_src emacs-lisp
+  (use-package anaconda-mode
+    :ensure t
+    :after conda
+    :config
+    (add-hook 'python-mode-hook 'anaconda-mode)
+    (add-hook 'python-mode-hook 'anaconda-eldoc-mode))
 #+end_src
 
 **** Pyimpsort
