@@ -515,7 +515,8 @@
   :bind
   (("C-c b c" . #'citar-create-note)
    ("C-c b o" . #'citar-open-notes)
-  (:map org-mode-map :package org ("C-c b i" . #'org-cite-insert))))
+  (:map org-mode-map
+        :package org ("C-c b i" . #'org-cite-insert))))
 
 (use-package citar-org-roam
   :after (org-roam org-roam-bibtex citar)
@@ -561,11 +562,17 @@
 (use-package eshell-git-prompt
   :after eshell)
 
+(use-package python-black
+  :demand t
+  :after python
+  :hook
+  (python-mode . python-black-on-save-mode-enable-dwim))
+
 (use-package conda
   :ensure t
   :custom
   (conda-env-initialize-eshell)
-  (conda-env-autoactivate-mode t))
+  (conda-env-autoactivate-mode f))
 
 ;; also change the default python command (pythonic is used under the hood by conda)
 (setq pythonic-interpreter "python")

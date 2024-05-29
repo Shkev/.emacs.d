@@ -838,32 +838,32 @@ Since we're using =ivy-bibtex=, we need to install/configure it.
 *** Org Ref
 Org Ref is a package that allows us to work with references more easily within org files. It is similar to citar however it works nicer for inserting citations. It is also required by other reference management packages.
 
-*Generally, I would recommend using org-ref for inserting citations over citar in documents.*
+*Generally, I would recommend using citar over org-ref for inserting citations in article documents* because the citation format on export is nicer. *But for regular org roam files, it probably doesn't matter*.
 
 Org ref can also be used to create references to other elements of a document (i.e., when writing a LaTeX document) such as to equations or figures.
 
 #+name:use-package-org-ref
 #+begin_src emacs-lisp
-(use-package org-ref
-    :config
-    (require 'org-ref-ivy)
-    (setq org-ref-insert-link-function 'org-ref-insert-link-hydra/body
-          org-ref-insert-cite-function 'org-ref-cite-insert-ivy
-          org-ref-insert-label-function 'org-ref-insert-label-link
-          org-ref-insert-ref-function 'org-ref-insert-ref-link
-          org-ref-cite-onclick-function (lambda (_) (org-ref-citation-hydra/body)))
-    (setq org-latex-pdf-process
-          '("pdflatex -interaction nonstopmode -output-directory %o %f"
-            "bibtex %b"
-            "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-            "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
-    :bind (:map org-mode-map
-                ("C-c ]" . org-ref-insert-link)
-                ("s-[" . org-ref-insert-link-hydra/body)))
+  (use-package org-ref
+      :config
+      (require 'org-ref-ivy)
+      (setq org-ref-insert-link-function 'org-ref-insert-link-hydra/body
+            org-ref-insert-cite-function 'org-ref-cite-insert-ivy
+            org-ref-insert-label-function 'org-ref-insert-label-link
+            org-ref-insert-ref-function 'org-ref-insert-ref-link
+            org-ref-cite-onclick-function (lambda (_) (org-ref-citation-hydra/body)))
+      (setq org-latex-pdf-process
+            '("pdflatex -interaction nonstopmode -output-directory %o %f"
+              "bibtex %b"
+              "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+              "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+      :bind (:map org-mode-map
+                  ("C-c ]" . org-ref-insert-link)
+                  ("s-[" . org-ref-insert-link-hydra/body)))
 #+end_src
 
 *** Org Roam Bibtex
-ORB is a package that simplifies using citations with a bibtex file within org roam. At the moment I don't really use it for anything but it might be useful later.
+ORB is a package that simplifies using citations with a bibtex file within org roam. Used for =org-roam-citar=.
 
 #+name:use-package-org-roam-bibtex
 #+begin_src emacs-lisp
@@ -880,24 +880,27 @@ ORB is a package that simplifies using citations with a bibtex file within org r
 
 Citar is another helpful package for managing and inserting references/citations into documents. 
 
+As mentioned above, *generally, I would recommend using citar over org-ref for inserting citations in article documents* because the citation format on export is nicer.
+
 #+name:use-package-citar
 #+begin_src emacs-lisp
-  (use-package citar
-    :after org ;; depends on org-directory
-    :config
-    (setq citar-notes-paths
-            (list (concat (file-truename org-directory) "/reference/paper")))
-    :custom
-    (org-cite-global-bibliography (directory-files org-directory t "^[A-Z|a-z].+.bib"))
-    (org-cite-insert-processor 'citar)
-    (org-cite-follow-processor 'citar)
-    (org-cite-activate-processor 'citar)
-    (citar-bibliography org-cite-global-bibliography)
-    (citar-org-roam-mode 1) ; enable mode on startup
-    :bind
-    (("C-c b c" . #'citar-create-note)
-     ("C-c b o" . #'citar-open-notes)
-    (:map org-mode-map :package org ("C-c b i" . #'org-cite-insert))))
+    (use-package citar
+      :after org ;; depends on org-directory
+      :config
+      (setq citar-notes-paths
+              (list (concat (file-truename org-directory) "/reference/paper")))
+      :custom
+      (org-cite-global-bibliography (directory-files org-directory t "^[A-Z|a-z].+.bib"))
+      (org-cite-insert-processor 'citar)
+      (org-cite-follow-processor 'citar)
+      (org-cite-activate-processor 'citar)
+      (citar-bibliography org-cite-global-bibliography)
+      (citar-org-roam-mode 1) ; enable mode on startup
+      :bind
+      (("C-c b c" . #'citar-create-note)
+       ("C-c b o" . #'citar-open-notes)
+      (:map org-mode-map
+            :package org ("C-c b i" . #'org-cite-insert))))
 #+end_src
 
 We also install the extension that plugs into org-roam to help with reference management there.
@@ -964,6 +967,18 @@ The =eshell-git-prompt= package displays the git info (i.e., current branch) nex
 #+end_src
 ** Programming Language Stuff
 *** Python Related
+**** Black
+
+Linter for Python. Setting it up to format code in buffer on save.
+
+#+begin_src emacs-lisp
+    (use-package python-black
+      :demand t
+      :after python
+      :hook
+      (python-mode . python-black-on-save-mode-enable-dwim))
+#+end_src
+
 **** Conda
 
 Package to help manage Conda virtual environments in Python.
@@ -974,7 +989,7 @@ Package to help manage Conda virtual environments in Python.
     :ensure t
     :custom
     (conda-env-initialize-eshell)
-    (conda-env-autoactivate-mode t))
+    (conda-env-autoactivate-mode f))
 
   ;; also change the default python command (pythonic is used under the hood by conda)
   (setq pythonic-interpreter "python")
