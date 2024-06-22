@@ -969,7 +969,7 @@ The =eshell-git-prompt= package displays the git info (i.e., current branch) nex
 *** Python Related
 **** Black
 
-Linter for Python. Setting it up to format code in buffer on save.
+Linter for Python. Setting it up to format code in buffer on save. Must have black installed separately (i.e., =conda install black=). This package is a wrapper around the original package for use within Emacs.
 
 #+begin_src emacs-lisp
     (use-package python-black
