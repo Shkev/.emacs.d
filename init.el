@@ -83,6 +83,7 @@
 (package-initialize)
 
 ;; use use-package to simplify loading packages
+;; Emacs 29 includes use-package built-in so I'm pretty sure the lines below are legacy
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
@@ -333,7 +334,7 @@
 
 (defun ska/org-mode-visual-fill ()
   "Pads both sides of text buffer (looks more like a word processor)"
-  (setq visual-fill-column-width 100
+  (setq visual-fill-column-width 200
         visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
@@ -374,6 +375,7 @@
   :custom
   (org-roam-directory (file-truename org-directory))
   (org-roam-completion-everywhere t)
+  (org-roam-database-connector 'sqlite-builtin) ; new in Emacs 29, uses built-in sql support
   :config
   (cl-defmethod org-roam-node-type ((node org-roam-node))
     "Return the TYPE of NODE."
@@ -601,8 +603,6 @@
 (use-package 2048-game)
 
 (use-package sudoku)
-
-(use-package slime-volleyball)
 
 ;; automatically tangle emacs config org file when saving
 (defun ska/org-babel-tangle-config ()

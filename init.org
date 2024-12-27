@@ -174,6 +174,7 @@ Set-up the locations to fetch packages from and also intialize the /use-package/
   (package-initialize)
 
   ;; use use-package to simplify loading packages
+  ;; Emacs 29 includes use-package built-in so I'm pretty sure the lines below are legacy
   (unless (package-installed-p 'use-package)
     (package-refresh-contents)
     (package-install 'use-package))
@@ -617,7 +618,7 @@ Now we make org document look nicer in org mode by changing the way the heading 
 
   (defun ska/org-mode-visual-fill ()
     "Pads both sides of text buffer (looks more like a word processor)"
-    (setq visual-fill-column-width 100
+    (setq visual-fill-column-width 200
           visual-fill-column-center-text t)
     (visual-fill-column-mode 1))
 
@@ -671,6 +672,8 @@ To auto-insert a code block, type =<...>= and replace "..." with one of the lang
 
 Org Roam is a note taking framework that allows implementing the Zettelkasten method of notetaking. Notes are organized as nodes that can be linked together.
 
+The package can cause some trouble with setting up =emacsql-sqlite= when using version of Emacs older than 29. Upgrading to Emacs 29 fixed all these issues (I'm assuming this because of the built-in SQL support introduced in Emacs 29?).
+
 #+name: use-package-org-roam
 #+begin_src emacs-lisp
   ;; allows creating new node on page without opening it (stay on same file after inserting link to new file)
@@ -690,6 +693,7 @@ Org Roam is a note taking framework that allows implementing the Zettelkasten me
     :custom
     (org-roam-directory (file-truename org-directory))
     (org-roam-completion-everywhere t)
+    (org-roam-database-connector 'sqlite-builtin) ; new in Emacs 29, uses built-in sql support
     :config
     (cl-defmethod org-roam-node-type ((node org-roam-node))
       "Return the TYPE of NODE."
@@ -1055,13 +1059,6 @@ The classic 2048 game... in Emacs
 #+name: use-package-sudoku
 #+begin_src emacs-lisp
 (use-package sudoku)
-#+end_src
-
-*** Slime Volleyball
-Idek what this is but it looked cool.
-
-#+begin_src emacs-lisp
-(use-package slime-volleyball)
 #+end_src
 
 * Custom Functions
