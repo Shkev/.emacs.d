@@ -242,6 +242,17 @@
   :config
   (global-origami-mode))
 
+(use-package treemacs
+  :ensure t
+  :bind
+  ;; defining treemacs toggles only in evil mode for now
+  (:map evil-normal-state-map
+        ("tmo" . treemacs) ;; treemacs "open" 
+        ("tms" . treemacs-select-window)) ;; treemacs "select"
+  :config
+  ;; so the treemacs frame isn't part of the frame switching cycle
+  (setq treemacs-is-never-other-window t))
+
 ;; use emacs keybinding when editing files (insert mode)
 (setq evil-disable-insert-state-bindings t)
 
@@ -645,6 +656,12 @@ if the current buffer contains a file"
                (message "Deleted file %s" filename)
                (kill-buffer))
       (message "Current buffer does not contain a file"))))
+
+(defun ska/open-init-file ()
+    "Opens the Emasc init.org file (note this is the *org* file, not the raw el file)."
+  (interactive)
+  (find-file
+   (concat (file-name-sans-extension user-init-file) ".org")))
 
 ;;; customized C indent formatting
 

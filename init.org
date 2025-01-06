@@ -455,11 +455,30 @@ Origami is a package that allows code folding. Helps me not go crazy when workin
 
 For keymaps, I'm just using the ones provided by evil mode out of the box. With the current setup, this means I can only fold blocks of code in "Normal mode" (and not "Insert mode"), but that's not a big deal. 
 
+#+name: use-package-origami
 #+begin_src emacs-lisp
   (use-package origami
     :ensure t
     :config
     (global-origami-mode))
+#+end_src
+
+*** Treemacs
+
+File tree GUI.
+
+#+name: use-package-treemacs
+#+begin_src emacs-lisp
+  (use-package treemacs
+    :ensure t
+    :bind
+    ;; defining treemacs toggles only in evil mode for now
+    (:map evil-normal-state-map
+          ("tmo" . treemacs) ;; treemacs "open" 
+          ("tms" . treemacs-select-window)) ;; treemacs "select"
+    :config
+    ;; so the treemacs frame isn't part of the frame switching cycle
+    (setq treemacs-is-never-other-window t))
 #+end_src
 
 ** Evil
@@ -1125,6 +1144,16 @@ The function below simply deletes the file in buffer that you are currently on (
                  (message "Deleted file %s" filename)
                  (kill-buffer))
         (message "Current buffer does not contain a file"))))
+#+end_src
+
+Here's a quick function to open my init.org file at any time from anywhere (useful if I want to make a quick change without going through and typing the whole file path from root).
+
+#+begin_src emacs-lisp
+  (defun ska/open-init-file ()
+      "Opens the Emasc init.org file (note this is the *org* file, not the raw el file)."
+    (interactive)
+    (find-file
+     (concat (file-name-sans-extension user-init-file) ".org")))
 #+end_src
 
 * Language Setup and Formatting
