@@ -572,6 +572,12 @@
     (setq eshell-visual-commands '("htop" "zsh" "vim")))
   (eshell-git-prompt-use-theme 'robbyrussell))
 
+(use-package
+  exec-path-from-shell
+  :if (memq window-system '(mac ns x))
+  :config
+  (exec-path-from-shell-initialize))
+
 (use-package eshell-git-prompt
   :after eshell)
 

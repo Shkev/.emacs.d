@@ -980,6 +980,15 @@ Eshell provides a linux terminal emulator in Emacs written entirely in emacs lis
     (eshell-git-prompt-use-theme 'robbyrussell))
 #+end_src
 
+Also adding the following package to ensure the PATH used by Eshell is the same as the one used by my native terminal. This ensures that the commands that work in my native term also work in Eshell.
+#+begin_src emacs-lisp
+  (use-package
+    exec-path-from-shell
+    :if (memq window-system '(mac ns x))
+    :config
+    (exec-path-from-shell-initialize))
+#+end_src
+
 *** Git Prompt
 The =eshell-git-prompt= package displays the git info (i.e., current branch) next to the terminal prompt.
 
