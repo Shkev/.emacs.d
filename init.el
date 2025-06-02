@@ -604,6 +604,33 @@
 (use-package eshell-git-prompt
   :after eshell)
 
+(use-package lsp-mode
+  :ensure t
+  :hook ((python-mode . lsp)
+         (lsp-mode-hook . lsp-ui-mode))
+  :commands lsp
+  :custom
+  (lsp-auto-guess-root t)
+  (lsp-enable-symbol-highlighting t)
+  (lsp-pylsp-plugins-pylint-enabled nil)
+  (lsp-pyright-typechecking-mode "basic")  ;; or "strict"
+  )
+
+(use-package lsp-ui
+  :ensure t
+  :commands lsp-ui-mode
+  :custom
+  (lsp-ui-doc-show-with-cursor t)
+  (lsp-ui-sideline-show-diagnostics t)
+  (lsp-ui-sideline-show-code-actions t))
+
+
+; add pyright Python lsp support (used above in lsp-mode config)
+(use-package lsp-pyright
+  :ensure t
+  :after lsp-mode
+  :hook (python-mode . (lambda () (require 'lsp-pyright))))
+
 (use-package python-black
   :demand t
   :after python
