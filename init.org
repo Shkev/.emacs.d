@@ -266,7 +266,8 @@ Ivy also have many other packages that go along with it to make it work in other
 
 **** Counsel
 
-Counsel uses Ivy as its backend to complete certain languages at point (i.e. emacs lisp) and also complete command names when the list is opened with =M-x=.
+Counsel provides a UI for Ivy (as its backend) so it looks nicer.
+
 We are remapping =M-x= to run =counsel-M-x= which is the same as the regular command list but allows us to use the fuzzy search and other features provided by counsel/ivy. Similarly we set the keybindings to open =counsel-ibuffer= instead of the usual buffer list.
 
 #+name: use-package-counsel
@@ -293,6 +294,18 @@ We use the ivy-rich package to give short descriptions for commands when =counse
     (ivy-rich-mode 1))
 
 #+end_src
+
+**** Ivy Prescient
+
+Sorts/filters results in Ivy buffer based on most recently and most frequently used.
+
+#+begin_src emacs-lisp
+  (use-package ivy-prescient
+    :after ivy
+    :config
+    (ivy-prescient-mode +1))
+#+end_src
+
 *** Company
 
 Company is a completion system for autocompleting typed text in the current buffer. It uses other words in all open buffers to suggest completions as you type.
@@ -338,7 +351,9 @@ Most of the UI related packages require =all-the-icons=. It's used to display gr
     :if (display-graphic-p))
 #+end_src
 
-Make sure to run =M-x all-the-icons-install-fonts= after installing for everything to work correctly.
+Make sure to run =M-x all-the-icons-install-fonts= after installing for everything to work correctly. After installing you may need to manually add the installed fonts to the system's font library.
+
+If after installing the fonts the icons still don't show up correctly in Emacs, you may need to also install [[eww:https://www.nerdfonts.com/][nerd-fonts]].
 
 *** Centaur Tabs
 
@@ -467,7 +482,7 @@ For keymaps, I'm just using the ones provided by evil mode out of the box. With 
 
 File tree GUI.
 
-#nd+name: use-package-treemacs
+#+name: use-package-treemacs
 #+begin_src emacs-lisp
   (use-package treemacs
     :ensure t
@@ -541,6 +556,47 @@ Pushing to a remote repository does not always prompt for a password and thus fa
   (use-package ssh-agency)
   (setenv "SSH_ASKPASS" "git-gui--askpass")
 #+end_src
+
+** Projectile
+
+A package to more easily navigate a project directory.
+
+#+begin_src emacs-lisp
+  (use-package projectile
+    :ensure t
+    :init
+    (setq projectile-project-search-path '("~/projects/"))
+    :config
+    (define-key projectile-mode-map (kbd "C-c C-p") 'projectile-command-map)
+    (global-set-key (kbd "C-c p") 'projectile-command-map)
+    (projectile-mode +1))
+#+end_src
+
+*** Counsel Projectile
+
+Provide Counsel UI for Projectile.
+
+#+begin_src emacs-lisp
+(use-package counsel-projectile
+  :ensure t
+  :config
+  (counsel-projectile-mode +1))
+#+end_src
+
+*** Ripgrep (rg)
+
+An alternative to the classic =grep= program for searching for content within files. =rg= is much faster than =grep= and has better support for unicode files. Projectile has built-in support to use =rg= in place of =grep= if it is installed.
+
+In addition ro running the snippet below to install the =rg= package in Emacs, you must also have the [[eww:https://github.com/BurntSushi/ripgrep][ripgrep]] backend installed locally.
+
+#+begin_src emacs-lisp
+  (use-package rg
+    :ensure t
+    :config
+    (rg-enable-default-bindings)) ;; Binds under C-c s by default
+#+end_src
+
+(Alternative to =rg= is =ag=. They just use different backends, =ag= uses [[eww:https://github.com/ggreer/the_silver_searcher]["The Silver Searcher"]].)
 
 ** Org Mode
 Org mode is what I am using to type this document. It is a plaintext markdown format that is very versatile and can do many things other than just produce nice documents.
@@ -1024,19 +1080,6 @@ Package to help manage Conda virtual environments in Python.
 
   ;; also change the default python command (pythonic is used under the hood by conda)
   (setq pythonic-interpreter "python")
-#+end_src
-
-**** Anaconda Mode
-
-A package that does a bunch of formatting and code completion/navigation stuff. Pretty useful for coding Python.
-
-#+begin_src emacs-lisp
-  (use-package anaconda-mode
-    :ensure t
-    :after conda
-    :config
-    (add-hook 'python-mode-hook 'anaconda-mode)
-    (add-hook 'python-mode-hook 'anaconda-eldoc-mode))
 #+end_src
 
 **** Pyimpsort

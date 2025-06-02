@@ -147,6 +147,11 @@
   :init
   (ivy-rich-mode 1))
 
+(use-package ivy-prescient
+  :after ivy
+  :config
+  (ivy-prescient-mode +1))
+
 (use-package popup)
 
 ;; Auto completion of words
@@ -287,6 +292,25 @@
 ;; make magit prompt for ssh password
 (use-package ssh-agency)
 (setenv "SSH_ASKPASS" "git-gui--askpass")
+
+(use-package projectile
+  :ensure t
+  :init
+  (setq projectile-project-search-path '("~/projects/"))
+  :config
+  (define-key projectile-mode-map (kbd "C-c C-p") 'projectile-command-map)
+  (global-set-key (kbd "C-c p") 'projectile-command-map)
+  (projectile-mode +1))
+
+(use-package counsel-projectile
+  :ensure t
+  :config
+  (counsel-projectile-mode +1))
+
+(use-package rg
+  :ensure t
+  :config
+  (rg-enable-default-bindings)) ;; Binds under C-c s by default
 
 (defun ska/org-font-setup ()
   ;; Replace list hyphen with dot
@@ -594,13 +618,6 @@
 
 ;; also change the default python command (pythonic is used under the hood by conda)
 (setq pythonic-interpreter "python")
-
-(use-package anaconda-mode
-  :ensure t
-  :after conda
-  :config
-  (add-hook 'python-mode-hook 'anaconda-mode)
-  (add-hook 'python-mode-hook 'anaconda-eldoc-mode))
 
 (use-package pyimpsort
   :config (eval-after-load 'python
