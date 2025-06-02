@@ -244,11 +244,10 @@
 
 (use-package treemacs
   :ensure t
-  :bind
-  ;; defining treemacs toggles only in evil mode for now
-  (:map evil-normal-state-map
-        ("tmo" . treemacs) ;; treemacs "open" 
-        ("tms" . treemacs-select-window)) ;; treemacs "select"
+  :init
+  (global-unset-key (kbd "C-x t t")) ; Unbind tab-bar key
+  :bind (("C-x t t" . treemacs)
+         ("M-0" . treemacs-select-window))
   :config
   ;; so the treemacs frame isn't part of the frame switching cycle
   (setq treemacs-is-never-other-window t))
@@ -617,6 +616,8 @@
   :hook yaml-mode . (lambda ()
      (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
 
+(use-package dockerfile-mode)
+
 (use-package 2048-game)
 
 (use-package sudoku)
@@ -657,7 +658,7 @@ if the current buffer contains a file"
   (let ((filename (buffer-file-name)))
     (if filename ; if curr buff contains a file
         (progn (if (vc-backend filename) ; if version control contains the file
-                   (vc-delete filename)
+                   (vc-delete-file filename)
                  (delete-file filename))
                (message "Deleted file %s" filename)
                (kill-buffer))
@@ -700,5 +701,5 @@ if the current buffer contains a file"
 
 (add-hook 'python-mode-hook
           (lambda ()
-            (setq python-indent-offset 2)
+            (setq python-indent-offset 4)
             (python-indent-guess-indent-offset)))

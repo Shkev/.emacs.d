@@ -467,15 +467,14 @@ For keymaps, I'm just using the ones provided by evil mode out of the box. With 
 
 File tree GUI.
 
-#+name: use-package-treemacs
+#nd+name: use-package-treemacs
 #+begin_src emacs-lisp
   (use-package treemacs
     :ensure t
-    :bind
-    ;; defining treemacs toggles only in evil mode for now
-    (:map evil-normal-state-map
-          ("tmo" . treemacs) ;; treemacs "open" 
-          ("tms" . treemacs-select-window)) ;; treemacs "select"
+    :init
+    (global-unset-key (kbd "C-x t t")) ; Unbind tab-bar key
+    :bind (("C-x t t" . treemacs)
+           ("M-0" . treemacs-select-window))
     :config
     ;; so the treemacs frame isn't part of the frame switching cycle
     (setq treemacs-is-never-other-window t))
@@ -1073,6 +1072,13 @@ Major mode for editing YAML files.
        (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
 #+end_src
 
+*** Dockerfile Mode
+
+Add syntax highlighting for Dockerfiles.
+
+#+begin_src emacs-lisp
+(use-package dockerfile-mode)
+#+end_src
 ** Games
 *** 2048
 The classic 2048 game... in Emacs
@@ -1148,7 +1154,7 @@ The function below simply deletes the file in buffer that you are currently on (
     (let ((filename (buffer-file-name)))
       (if filename ; if curr buff contains a file
           (progn (if (vc-backend filename) ; if version control contains the file
-                     (vc-delete filename)
+                     (vc-delete-file filename)
                    (delete-file filename))
                  (message "Deleted file %s" filename)
                  (kill-buffer))
@@ -1215,6 +1221,6 @@ Changing default tab size to 2 spaces (or infer indent from existing file). Also
 
   (add-hook 'python-mode-hook
             (lambda ()
-              (setq python-indent-offset 2)
+              (setq python-indent-offset 4)
               (python-indent-guess-indent-offset)))
 #+end_src
