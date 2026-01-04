@@ -352,7 +352,7 @@
   (ska/org-font-setup)
   :bind (
          ;; toggle org mode emphasis markers on and off
-         ("C-c s e" . ska/org-mode-toggle-hide-emphasis-markers)))
+         ("C-c e t" . ska/org-mode-toggle-hide-emphasis-markers)))
 
 (setq org-directory (concat (getenv "HOME") "/OneDrive - University of Illinois - Urbana/OrgRoamNotes"))
 
@@ -614,7 +614,7 @@
   (lsp-enable-symbol-highlighting t)
   (lsp-pylsp-plugins-pylint-enabled nil)
   (lsp-pyright-typechecking-mode "basic")  ;; or "strict"
-  )
+)
 
 (use-package lsp-ui
   :ensure t
@@ -630,6 +630,10 @@
   :ensure t
   :after lsp-mode
   :hook (python-mode . (lambda () (require 'lsp-pyright))))
+
+(setq gc-cons-threshold 1600000)
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
+(setq lsp-log-io nil)
 
 (use-package python-black
   :demand t

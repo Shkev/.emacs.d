@@ -650,7 +650,7 @@ Change the =org-directory= if the location of org-roam files changes.
     (ska/org-font-setup)
     :bind (
            ;; toggle org mode emphasis markers on and off
-           ("C-c s e" . ska/org-mode-toggle-hide-emphasis-markers)))
+           ("C-c e t" . ska/org-mode-toggle-hide-emphasis-markers)))
 
   (setq org-directory (concat (getenv "HOME") "/OneDrive - University of Illinois - Urbana/OrgRoamNotes"))
 #+end_src
@@ -1068,7 +1068,7 @@ Manages language servers. Also add =lsp-ui= for a better UI when interacting wit
     (lsp-enable-symbol-highlighting t)
     (lsp-pylsp-plugins-pylint-enabled nil)
     (lsp-pyright-typechecking-mode "basic")  ;; or "strict"
-    )
+  )
 
   (use-package lsp-ui
     :ensure t
@@ -1093,6 +1093,22 @@ For the *Python language server* we use =pyright= (made by Microsoft). This make
 #+end_src
 
 Then the language server should work as expected (together with Projectile, when you open a Python project the LSP will automatically become active).
+
+**** Efficiency
+
+https://emacs-lsp.github.io/lsp-mode/page/performance/
+
+Note: some of these changes affect Emacs globally (not just specific to LSP mode processes). But the main drawback of these changes is increased memory usage, which isnt't really an issue.
+
+- Increase cons threshold to run garbage collection less frequently. LSP mode can generate a lot of garbage so if the limit is low it can trigger a bunch of garbase collections causing Emacs to hang
+- Increase size of chunks Emacs reads from subprocesses. LSP messages can be quite large sometimes so the default 4kB chunk size can be too small requiring multiple reads from the LSP to process a request, which can slow things down
+- Turn off logging for LSP mode. Logs from the LSP aren't really that useful and logging can take up a lot of time causing Emacs to hang.
+
+#+begin_src emacs-lisp
+  (setq gc-cons-threshold 1600000)
+  (setq read-process-output-max (* 1024 1024)) ;; 1mb
+  (setq lsp-log-io nil)
+#+end_src
 
 *** Python Related
 **** Black
