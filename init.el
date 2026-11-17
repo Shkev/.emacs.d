@@ -1,3 +1,5 @@
+;;; -*- lexical-binding: t; -*-
+
 ;; setting encoding system
 (prefer-coding-system       'utf-8)
 (set-default-coding-systems 'utf-8)
@@ -54,6 +56,10 @@
 (setq mouse-wheel-scroll-amount '(0.01))
 (setq mouse-wheel-progressive-speed nil)
 
+(pixel-scroll-precision-mode 1)
+(setq pixel-scroll-precision-use-momentum t      ; enables smooth coasting after flicking
+      pixel-scroll-precision-interpolate-page t) ; smooth-scrolls C-v / M-v / PageUp / PageDown
+
 ;; Don't show the splash startup screen
 (setq inhibit-startup-message t)
 
@@ -77,22 +83,15 @@
 
 ;; Define and initialize package repositories (MELPA/ELPA)
 (require 'package)
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("org" . "https://orgmode.org/elpa/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")))
-(package-initialize)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 
-;; use use-package to simplify loading packages
-;; Emacs 29 includes use-package built-in so I'm pretty sure the lines below are legacy
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
-(require 'use-package)
 (setq use-package-always-ensure t)
 
-(use-package gnu-elpa-keyring-update)
+;; Silence background native-compilation warnings from third-party packages
+(setq native-comp-async-report-warnings-errors 'silent)
 
 (use-package which-key
+  :ensure nil  ; tell emacs to use its internal version instead of downloading from MELPA
   :init (which-key-mode)
   :diminish which-key-mode
   :config
@@ -152,11 +151,8 @@
   :config
   (ivy-prescient-mode +1))
 
-(use-package popup)
-
 ;; Auto completion of words
 (use-package company
-  :after popup
   :config
   (setq company-idle-delay 0
         ;; minimum word length before it gives suggestions
@@ -166,11 +162,10 @@
 
 ;; auto parenthesis matching
 (use-package smartparens
-  :init
-  (require 'smartparens-config)
+  :hook (prog-mode . smartparens-strict-mode)
   :config
-  (setq prog-mode smartparens-strict-mode))
-(smartparens-global-mode t)
+  (require 'smartparens-config)
+  (smartparens-global-mode 1))
 
 (use-package all-the-icons
   :if (display-graphic-p))
@@ -232,23 +227,17 @@
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
-(use-package smooth-scrolling
-  :init (smooth-scrolling-mode 1))
-
 (use-package highlight-indent-guides
-  :ensure t
   :config
   (add-hook 'python-mode-hook 'highlight-indent-guides-mode)
   (add-hook 'yaml-mode-hook 'highlight-indent-guides-mode)
   (setq highlight-indent-guides-method 'character))
 
-(use-package origami
-  :ensure t
-  :config
-  (global-origami-mode))
+(use-package hideshow
+  :ensure nil
+  :hook (prog-mode . hs-minor-mode))
 
 (use-package treemacs
-  :ensure t
   :init
   (global-unset-key (kbd "C-x t t")) ; Unbind tab-bar key
   :bind (("C-x t t" . treemacs)
@@ -294,7 +283,6 @@
 (setenv "SSH_ASKPASS" "git-gui--askpass")
 
 (use-package projectile
-  :ensure t
   :init
   (setq projectile-project-search-path '("~/projects/"))
   :config
@@ -303,12 +291,10 @@
   (projectile-mode +1))
 
 (use-package counsel-projectile
-  :ensure t
   :config
   (counsel-projectile-mode +1))
 
 (use-package rg
-  :ensure t
   :config
   (rg-enable-default-bindings)) ;; Binds under C-c s by default
 
@@ -346,6 +332,7 @@
          (org-mode)))
 
 (use-package org
+  :ensure nil
   :hook (org-mode . ska/org-mode-setup)
   :config
   (setq org-ellipsis " ▾")
@@ -402,10 +389,6 @@
 
 (use-package org-roam
   :after org
-  :ensure t
-  :init
-  ;; suppress v2 upgrade warning
-  (setq org-roam-v2-ack t)
   :custom
   (org-roam-directory (file-truename org-directory))
   (org-roam-completion-everywhere t)
@@ -429,36 +412,30 @@
         '(("i" "Idea" plain "%?"
            :if-new (file+head "idea/$%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :idea:\n")
-           :immediate-finish t
-           :unarrowed t)
+           :immediate-finish t)
           ("r" "Reference Material")
           ("rr" "Paper / Website" plain "%?"
            :if-new (file+head "reference/paper/$%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
-           :immediate-finish t
-           :unarrowed t)
+           :immediate-finish t)
           ("ri" "Index" plain "%?"
            :if-new (file+head "reference/index/$%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
-           :immediate-finish t
-           :unarrowed t)
+           :immediate-finish t)
           ("rc" "Course Material")
           ("rcn" "Course Notes (lecture, textbook, etc.)" plain "%?"
            :if-new (file+head "reference/course/notes/%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
-           :immediate-finish t
-           :unarrowed t)
+           :immediate-finish t)
           ("rci" "Course Index" plain "%?"
            :if-new (file+head "reference/course/index/%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
-           :immediate-finish t
-           :unarrowed t)
+           :immediate-finish t)
 
           ("a" "Article" plain "%?"
            :if-new (file+head "articles/$%<%Y%m%d%H%M%S>-${slug}.org"
                               "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :article:\n")
-           :immediate-finish t
-           :unarrowed t))
+           :immediate-finish t))
         time-stamp-active t
         time-stamp-start "#\\+lastmod: [ \t]*"
         time-stamp-end "$")
@@ -567,7 +544,7 @@
                            :annotate #'citar-org-roam--annotate))
   (setq citar-org-roam-subdir "reference/paper")
   :custom
-  (setq citar-notes-source 'orb-citar-source))
+  (citar-notes-source 'orb-citar-source))
 
 (defun ska/configure-eshell ()
   ;; Save command history when commands are entered
@@ -588,12 +565,12 @@
 
 ;; eshell comes with Emacs. This allows us to configure it
 (use-package eshell
+  :ensure nil
   :hook (eshell-first-time-mode . ska/configure-eshell)
   :config
   (with-eval-after-load 'esh-opt
     (setq eshell-destroy-buffer-when-process-dies t)
-    (setq eshell-visual-commands '("htop" "zsh" "vim")))
-  (eshell-git-prompt-use-theme 'robbyrussell))
+    (setq eshell-visual-commands '("htop" "zsh" "vim"))))
 
 (use-package
   exec-path-from-shell
@@ -602,12 +579,14 @@
   (exec-path-from-shell-initialize))
 
 (use-package eshell-git-prompt
-  :after eshell)
+  :after eshell
+  :config
+  (eshell-git-prompt-use-theme 'robbyrussell))
 
 (use-package lsp-mode
-  :ensure t
+  
   :hook ((python-mode . lsp)
-         (lsp-mode-hook . lsp-ui-mode))
+         (lsp-mode . lsp-ui-mode))
   :commands lsp
   :custom
   (lsp-auto-guess-root t)
@@ -617,7 +596,7 @@
 )
 
 (use-package lsp-ui
-  :ensure t
+  
   :commands lsp-ui-mode
   :custom
   (lsp-ui-doc-show-with-cursor t)
@@ -627,7 +606,7 @@
 
 ; add pyright Python lsp support (used above in lsp-mode config)
 (use-package lsp-pyright
-  :ensure t
+  
   :after lsp-mode
   :hook (python-mode . (lambda () (require 'lsp-pyright))))
 
@@ -642,10 +621,9 @@
   (python-mode . python-black-on-save-mode-enable-dwim))
 
 (use-package conda
-  :ensure t
-  :custom
+  :config
   (conda-env-initialize-eshell)
-  (conda-env-autoactivate-mode f))
+  (conda-env-autoactivate-mode nil))
 
 ;; also change the default python command (pythonic is used under the hood by conda)
 (setq pythonic-interpreter "python")
@@ -654,15 +632,16 @@
   :config (eval-after-load 'python
             '(define-key python-mode-map "\C-c\C-u" #'pyimpsort-buffer)))
 
-(use-package auctex
-  :ensure t
+(use-package tex
+  :ensure auctex
   :defer t
-  :custom (setq TeX-parse-self t
-                TeX-auto-save t))
+  :custom
+  (TeX-parse-self t)
+  (TeX-auto-save t))
 
 (use-package yaml-mode
-  :hook yaml-mode . (lambda ()
-     (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
+  :bind (:map yaml-mode-map
+         ("C-m" . newline-and-indent)))
 
 (use-package dockerfile-mode)
 
@@ -678,8 +657,9 @@
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 
-(add-hook 'org-mode-hook (
-                          lambda () (add-hook 'after-save-hook #'ska/org-babel-tangle-config)))
+(add-hook 'org-mode-hook
+	  (lambda ()
+	    (add-hook 'after-save-hook #'ska/org-babel-tangle-config nil t)))
 
 ;; source: https://jethrokuan.github.io/org-roam-guide/
 (defun ska/org-roam-node-from-cite (keys-entries)
@@ -742,8 +722,8 @@ if the current buffer contains a file"
 (setq c-default-style
       '((java-mode . "ellemtel")))
 (add-hook 'java-mode-hook (lambda ()
-                            (setq c-basic-offset 4)
-                            tab-width 4))
+                            (setq c-basic-offset 4
+				  tab-width 4)))
 
 (setq python-shell-interpreter "python")
 

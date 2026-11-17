@@ -2,6 +2,10 @@
 #+AUTHOR:Shayan Azmoodeh
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el :results none
 
+#+begin_src emacs-lisp
+;;; -*- lexical-binding: t; -*-
+#+end_src
+
 * Character Encoding Scheme
 
 The default character coding scheme for documents written in Emacs is UTF-8. Code ensures that all typing and reading of files is done with UTF-8.
@@ -112,6 +116,10 @@ To make Emacs's UI less distracting and encourage us to use the keyboard to cont
 #+begin_src emacs-lisp
   (setq mouse-wheel-scroll-amount '(0.01))
   (setq mouse-wheel-progressive-speed nil)
+
+  (pixel-scroll-precision-mode 1)
+  (setq pixel-scroll-precision-use-momentum t      ; enables smooth coasting after flicking
+        pixel-scroll-precision-interpolate-page t) ; smooth-scrolls C-v / M-v / PageUp / PageDown
 #+end_src
 
 ** Miscellaneous
@@ -159,8 +167,7 @@ Emacs can store recently visited files and a history of commands typed in minibu
 
 * Packages
 ** Set Up
-Set-up the locations to fetch packages from and also intialize the /use-package/ package to simplify requiring future packages.
-- Note we first have to =(require package)= to be able to install =use-package=. _We do not use the =package= ever again_.
+Set-up the locations to fetch packages from and also intialize the /use-package/ package (now built into Emacs) to simplify requiring future packages.
 
 #+name: setup-use-package
 #+begin_src emacs-lisp
@@ -168,26 +175,12 @@ Set-up the locations to fetch packages from and also intialize the /use-package/
 
   ;; Define and initialize package repositories (MELPA/ELPA)
   (require 'package)
-  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                           ("org" . "https://orgmode.org/elpa/")
-                           ("elpa" . "https://elpa.gnu.org/packages/")))
-  (package-initialize)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 
-  ;; use use-package to simplify loading packages
-  ;; Emacs 29 includes use-package built-in so I'm pretty sure the lines below are legacy
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
-  (require 'use-package)
   (setq use-package-always-ensure t)
 
-#+end_src
-
-We also add the keyring update package to automatically update gpg keys needed to access ELPA.
-
-#+name: use-package-gnu-elpa-keyring-update
-#+begin_src emacs-lisp
-(use-package gnu-elpa-keyring-update)
+  ;; Silence background native-compilation warnings from third-party packages
+  (setq native-comp-async-report-warnings-errors 'silent)
 #+end_src
 
 ** Convenience
@@ -198,6 +191,7 @@ We also add the keyring update package to automatically update gpg keys needed t
 #+name: use-package-which-key
 #+begin_src emacs-lisp
   (use-package which-key
+    :ensure nil  ; tell emacs to use its internal version instead of downloading from MELPA
     :init (which-key-mode)
     :diminish which-key-mode
     :config
@@ -316,11 +310,8 @@ We also need to have the =popup= package so company has a way to display the aut
 
 #+name: use-package-company
 #+begin_src emacs-lisp
-  (use-package popup)
-
   ;; Auto completion of words
   (use-package company
-    :after popup
     :config
     (setq company-idle-delay 0
           ;; minimum word length before it gives suggestions
@@ -335,11 +326,10 @@ Smartparens gives us automatic parenthesis matching. Also works with ={}, [], ""
 #+begin_src emacs-lisp
   ;; auto parenthesis matching
   (use-package smartparens
-    :init
-    (require 'smartparens-config)
+    :hook (prog-mode . smartparens-strict-mode)
     :config
-    (setq prog-mode smartparens-strict-mode))
-  (smartparens-global-mode t)
+    (require 'smartparens-config)
+    (smartparens-global-mode 1))
 #+end_src
 
 ** UI Packages
@@ -441,15 +431,6 @@ Colors parenthesis and other delimiters so matching delimiters are the same colo
     :hook (prog-mode . rainbow-delimiters-mode))
 #+end_src
 
-*** Smooth Scrolling
-Adds global mode that make scrolling in Emacs with a mouse smoother.
-
-#+name: use-package-smooth-scrolling
-#+begin_src emacs-lisp
-    (use-package smooth-scrolling
-      :init (smooth-scrolling-mode 1))
-#+end_src
-
 *** Highlight Indentation
 
 Provides a minor mode that clearly shows the indentation levels in your code and which level you are currently on.
@@ -457,25 +438,21 @@ Provides a minor mode that clearly shows the indentation levels in your code and
 #+name: use-package-highlight-indentation
 #+begin_src emacs-lisp
   (use-package highlight-indent-guides
-    :ensure t
     :config
     (add-hook 'python-mode-hook 'highlight-indent-guides-mode)
     (add-hook 'yaml-mode-hook 'highlight-indent-guides-mode)
     (setq highlight-indent-guides-method 'character))
 #+end_src
 
-*** Origami Code Folding
-
-Origami is a package that allows code folding. Helps me not go crazy when working with large code bases (especially Python).
+*** Hideshow Code Folding
 
 For keymaps, I'm just using the ones provided by evil mode out of the box. With the current setup, this means I can only fold blocks of code in "Normal mode" (and not "Insert mode"), but that's not a big deal. 
 
 #+name: use-package-origami
 #+begin_src emacs-lisp
-  (use-package origami
-    :ensure t
-    :config
-    (global-origami-mode))
+(use-package hideshow
+  :ensure nil
+  :hook (prog-mode . hs-minor-mode))
 #+end_src
 
 *** Treemacs
@@ -485,7 +462,6 @@ File tree GUI.
 #+name: use-package-treemacs
 #+begin_src emacs-lisp
   (use-package treemacs
-    :ensure t
     :init
     (global-unset-key (kbd "C-x t t")) ; Unbind tab-bar key
     :bind (("C-x t t" . treemacs)
@@ -563,7 +539,6 @@ A package to more easily navigate a project directory.
 
 #+begin_src emacs-lisp
   (use-package projectile
-    :ensure t
     :init
     (setq projectile-project-search-path '("~/projects/"))
     :config
@@ -578,7 +553,6 @@ Provide Counsel UI for Projectile.
 
 #+begin_src emacs-lisp
 (use-package counsel-projectile
-  :ensure t
   :config
   (counsel-projectile-mode +1))
 #+end_src
@@ -591,7 +565,6 @@ In addition ro running the snippet below to install the =rg= package in Emacs, y
 
 #+begin_src emacs-lisp
   (use-package rg
-    :ensure t
     :config
     (rg-enable-default-bindings)) ;; Binds under C-c s by default
 #+end_src
@@ -644,6 +617,7 @@ Change the =org-directory= if the location of org-roam files changes.
 #+name: use-package-org
 #+begin_src emacs-lisp :results none
   (use-package org
+    :ensure nil
     :hook (org-mode . ska/org-mode-setup)
     :config
     (setq org-ellipsis " ▾")
@@ -760,10 +734,6 @@ The package can cause some trouble with setting up =emacsql-sqlite= when using v
 
   (use-package org-roam
     :after org
-    :ensure t
-    :init
-    ;; suppress v2 upgrade warning
-    (setq org-roam-v2-ack t)
     :custom
     (org-roam-directory (file-truename org-directory))
     (org-roam-completion-everywhere t)
@@ -787,36 +757,30 @@ The package can cause some trouble with setting up =emacsql-sqlite= when using v
           '(("i" "Idea" plain "%?"
              :if-new (file+head "idea/$%<%Y%m%d%H%M%S>-${slug}.org"
                                 "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :idea:\n")
-             :immediate-finish t
-             :unarrowed t)
+             :immediate-finish t)
             ("r" "Reference Material")
             ("rr" "Paper / Website" plain "%?"
              :if-new (file+head "reference/paper/$%<%Y%m%d%H%M%S>-${slug}.org"
                                 "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
-             :immediate-finish t
-             :unarrowed t)
+             :immediate-finish t)
             ("ri" "Index" plain "%?"
              :if-new (file+head "reference/index/$%<%Y%m%d%H%M%S>-${slug}.org"
                                 "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
-             :immediate-finish t
-             :unarrowed t)
+             :immediate-finish t)
             ("rc" "Course Material")
             ("rcn" "Course Notes (lecture, textbook, etc.)" plain "%?"
              :if-new (file+head "reference/course/notes/%<%Y%m%d%H%M%S>-${slug}.org"
                                 "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
-             :immediate-finish t
-             :unarrowed t)
+             :immediate-finish t)
             ("rci" "Course Index" plain "%?"
              :if-new (file+head "reference/course/index/%<%Y%m%d%H%M%S>-${slug}.org"
                                 "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :reference:\n")
-             :immediate-finish t
-             :unarrowed t)
+             :immediate-finish t)
 
             ("a" "Article" plain "%?"
              :if-new (file+head "articles/$%<%Y%m%d%H%M%S>-${slug}.org"
                                 "#+title: ${title}\n#+author: Shayan Azmoodeh\n#+date: %u\n#+lastmod: \n#+filetags: :article:\n")
-             :immediate-finish t
-             :unarrowed t))
+             :immediate-finish t))
           time-stamp-active t
           time-stamp-start "#\\+lastmod: [ \t]*"
           time-stamp-end "$")
@@ -998,7 +962,7 @@ We also install the extension that plugs into org-roam to help with reference ma
                              :annotate #'citar-org-roam--annotate))
     (setq citar-org-roam-subdir "reference/paper")
     :custom
-    (setq citar-notes-source 'orb-citar-source))
+    (citar-notes-source 'orb-citar-source))
 #+end_src
 
 Note citar also needs the path to the bibliography so *update the path if it changes*. It should really only need to be updated if the filename changes because the rest of the path is dependent on the =org-directory=. 
@@ -1027,15 +991,16 @@ Eshell provides a linux terminal emulator in Emacs written entirely in emacs lis
 
   ;; eshell comes with Emacs. This allows us to configure it
   (use-package eshell
+    :ensure nil
     :hook (eshell-first-time-mode . ska/configure-eshell)
     :config
     (with-eval-after-load 'esh-opt
       (setq eshell-destroy-buffer-when-process-dies t)
-      (setq eshell-visual-commands '("htop" "zsh" "vim")))
-    (eshell-git-prompt-use-theme 'robbyrussell))
+      (setq eshell-visual-commands '("htop" "zsh" "vim"))))
 #+end_src
 
 Also adding the following package to ensure the PATH used by Eshell is the same as the one used by my native terminal. This ensures that the commands that work in my native term also work in Eshell.
+
 #+begin_src emacs-lisp
   (use-package
     exec-path-from-shell
@@ -1047,11 +1012,14 @@ Also adding the following package to ensure the PATH used by Eshell is the same 
 *** Git Prompt
 The =eshell-git-prompt= package displays the git info (i.e., current branch) next to the terminal prompt.
 
-#+name: use-package-eshell-git-prompt
+#+nampPe: use-package-eshell-git-prompt
 #+begin_src emacs-lisp :results none
-  (use-package eshell-git-prompt
-    :after eshell)
+(use-package eshell-git-prompt
+  :after eshell
+  :config
+  (eshell-git-prompt-use-theme 'robbyrussell))
 #+end_src
+
 ** Programming Language Stuff
 *** LSP Mode
 
@@ -1059,9 +1027,9 @@ Manages language servers. Also add =lsp-ui= for a better UI when interacting wit
 
 #+begin_src emacs-lisp
   (use-package lsp-mode
-    :ensure t
+    
     :hook ((python-mode . lsp)
-           (lsp-mode-hook . lsp-ui-mode))
+           (lsp-mode . lsp-ui-mode))
     :commands lsp
     :custom
     (lsp-auto-guess-root t)
@@ -1071,7 +1039,7 @@ Manages language servers. Also add =lsp-ui= for a better UI when interacting wit
   )
 
   (use-package lsp-ui
-    :ensure t
+    
     :commands lsp-ui-mode
     :custom
     (lsp-ui-doc-show-with-cursor t)
@@ -1081,7 +1049,7 @@ Manages language servers. Also add =lsp-ui= for a better UI when interacting wit
 
   ; add pyright Python lsp support (used above in lsp-mode config)
   (use-package lsp-pyright
-    :ensure t
+    
     :after lsp-mode
     :hook (python-mode . (lambda () (require 'lsp-pyright))))
 #+end_src
@@ -1130,10 +1098,9 @@ Package to help manage Conda virtual environments in Python.
 #+name: use-package-conda
 #+begin_src emacs-lisp
   (use-package conda
-    :ensure t
-    :custom
+    :config
     (conda-env-initialize-eshell)
-    (conda-env-autoactivate-mode f))
+    (conda-env-autoactivate-mode nil))
 
   ;; also change the default python command (pythonic is used under the hood by conda)
   (setq pythonic-interpreter "python")
@@ -1156,20 +1123,21 @@ AUCTeX is a package that adds a lot of functionality when editing LaTeX document
 
 #+name: use-package-AUCTeX
 #+begin_src emacs-lisp
-  (use-package auctex
-    :ensure t
+  (use-package tex
+    :ensure auctex
     :defer t
-    :custom (setq TeX-parse-self t
-                  TeX-auto-save t))
+    :custom
+    (TeX-parse-self t)
+    (TeX-auto-save t))
 #+end_src
 
 *** YAML Mode
 Major mode for editing YAML files.
 
 #+begin_src emacs-lisp
-  (use-package yaml-mode
-    :hook yaml-mode . (lambda ()
-       (define-key yaml-mode-map "\C-m" 'newline-and-indent)))
+(use-package yaml-mode
+  :bind (:map yaml-mode-map
+         ("C-m" . newline-and-indent)))
 #+end_src
 
 *** Dockerfile Mode
@@ -1209,9 +1177,10 @@ I configured org to automatically tangle my init.org file whenever I save it.
                         (file-truename "~/.emacs.d/init.org"))
       (let ((org-confirm-babel-evaluate nil))
         (org-babel-tangle))))
-  
-  (add-hook 'org-mode-hook (
-                            lambda () (add-hook 'after-save-hook #'ska/org-babel-tangle-config)))
+
+  (add-hook 'org-mode-hook
+  	  (lambda ()
+  	    (add-hook 'after-save-hook #'ska/org-babel-tangle-config nil t)))
 #+end_src
 *** Org Roam
 Given that we have a large file of references (a .bib file) we want a way to take notes on them and dedicate a note to a chosen reference. The following function allows me to do this.
@@ -1308,8 +1277,8 @@ Not sure how some of the code here works... but it works. I'll figure it out lat
   (setq c-default-style
         '((java-mode . "ellemtel")))
   (add-hook 'java-mode-hook (lambda ()
-                              (setq c-basic-offset 4)
-                              tab-width 4))
+                              (setq c-basic-offset 4
+  				  tab-width 4)))
 #+end_src
 
 ** Python Formatting
