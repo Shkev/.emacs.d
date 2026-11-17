@@ -1321,6 +1321,6 @@ Changing default tab size to 2 spaces (or infer indent from existing file). Also
 
   (add-hook 'python-mode-hook
             (lambda ()
-              (setq python-indent-offset 4)
+              (setq python-indent-offset 2)
               (python-indent-guess-indent-offset)))
 #+end_src

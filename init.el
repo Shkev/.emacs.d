@@ -749,5 +749,5 @@ if the current buffer contains a file"
 
 (add-hook 'python-mode-hook
           (lambda ()
-            (setq python-indent-offset 4)
+            (setq python-indent-offset 2)
             (python-indent-guess-indent-offset)))
